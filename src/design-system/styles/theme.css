@@ -1,0 +1,83 @@
+/* Lenk Explorer Quest — canonical theme entry.
+   Import this one file to receive the full design system theme. */
+
+:root {
+  /* Brand */
+  --lenk-primary: #1a2b4c;
+  --lenk-primary-hover: #14213b;
+  --lenk-primary-foreground: #ffffff;
+
+  --lenk-secondary: #2d5a27;
+  --lenk-secondary-hover: #24491f;
+  --lenk-secondary-foreground: #ffffff;
+
+  --lenk-gold: #d4af37;
+  --lenk-gold-hover: #bf9c2c;
+  --lenk-gold-foreground: #1a2b4c;
+
+  /* Surfaces */
+  --lenk-background: #f8f9fa;
+  --lenk-surface: #ffffff;
+  --lenk-border: #e2e8f0;
+
+  /* Text */
+  --lenk-text: #0f172a;
+  --lenk-text-muted: #475569;
+
+  /* States */
+  --lenk-success: #2d5a27;
+  --lenk-danger: #b42318;
+
+  /* Radii */
+  --lenk-radius-md: 0.75rem;
+  --lenk-radius-lg: 1rem;
+  --lenk-radius-xl: 1.5rem;
+  --lenk-radius-pill: 9999px;
+
+  /* Shadows — soft ambient elevation */
+  --lenk-shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --lenk-shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.1);
+  --lenk-shadow-lg: 0 12px 32px -8px rgb(15 23 42 / 0.16);
+}
+
+@theme inline {
+  --color-primary: var(--lenk-primary);
+  --color-primary-hover: var(--lenk-primary-hover);
+  --color-primary-foreground: var(--lenk-primary-foreground);
+
+  --color-secondary: var(--lenk-secondary);
+  --color-secondary-hover: var(--lenk-secondary-hover);
+  --color-secondary-foreground: var(--lenk-secondary-foreground);
+
+  --color-gold: var(--lenk-gold);
+  --color-gold-hover: var(--lenk-gold-hover);
+  --color-gold-foreground: var(--lenk-gold-foreground);
+
+  --color-background: var(--lenk-background);
+  --color-surface: var(--lenk-surface);
+  --color-border: var(--lenk-border);
+
+  --color-text: var(--lenk-text);
+  --color-text-muted: var(--lenk-text-muted);
+
+  --color-success: var(--lenk-success);
+  --color-danger: var(--lenk-danger);
+
+  --radius-md: var(--lenk-radius-md);
+  --radius-lg: var(--lenk-radius-lg);
+  --radius-xl: var(--lenk-radius-xl);
+
+  --shadow-sm: var(--lenk-shadow-sm);
+  --shadow-md: var(--lenk-shadow-md);
+  --shadow-lg: var(--lenk-shadow-lg);
+
+  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--lenk-background);
+  color: var(--lenk-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
