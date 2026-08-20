@@ -284,7 +284,7 @@ function ShopPage() {
                       LENK COLLECTOR BOX
                     </p>
                     <p className="text-center text-[9px] font-semibold text-text-muted">
-                      {activeFrame.dims} · {SECTORS.water.name.split(" ")[0]} Alpine Edition
+                      {activeFrame.dims} · Lenk Alpine Edition
                     </p>
                   </div>
                 </div>
@@ -379,6 +379,19 @@ function ShopPage() {
                 setPaid(true);
               }}
             >
+              {routeComplete && (
+                <div className="flex items-center gap-3 rounded-xl border border-gold bg-gold/10 p-3">
+                  <span className="text-2xl" aria-hidden="true">
+                    🎉
+                  </span>
+                  <div>
+                    <Badge variant="gold">10% Descuento Especial Fin de Ruta</Badge>
+                    <Text size="sm" tone="muted">
+                      ¡8/8 hitos completados! Aplicado automáticamente a tu pedido.
+                    </Text>
+                  </div>
+                </div>
+              )}
               <div className="space-y-1">
                 <label htmlFor="shop-name" className="text-xs font-semibold text-text-muted">
                   Nombre completo
@@ -431,6 +444,12 @@ function ShopPage() {
                   </dt>
                   <dd className="font-semibold text-text">{shipping ? chf(shipping) : "Gratis"}</dd>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between">
+                    <dt className="text-secondary">Descuento Fin de Ruta (10%)</dt>
+                    <dd className="font-semibold text-secondary">-{chf(discount)}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-border pt-2 text-base">
                   <dt className="font-bold text-primary">Total</dt>
                   <dd className="font-bold text-primary">{chf(totalPrice)}</dd>
