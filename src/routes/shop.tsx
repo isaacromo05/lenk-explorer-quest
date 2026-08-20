@@ -62,7 +62,7 @@ function chf(value: number) {
 }
 
 function ShopPage() {
-  const { entries, sectorProgress, scanned, total } = usePassport();
+  const { photoEntries: entries, sectorProgress, scanned, total } = usePassport();
   const [frame, setFrame] = useState<FrameId>("m");
   const [selected, setSelected] = useState<string[]>([]);
   const [addons, setAddons] = useState<AddonId[]>([]);
@@ -97,7 +97,19 @@ function ShopPage() {
   );
 
   const shipping = delivery === "home" ? SHIPPING_HOME : 0;
-  const totalPrice = activeFrame.price + addonTotal + shipping;
+  const routeComplete = scanned === total && total > 0;
+  const subtotal = activeFrame.price + addonTotal;
+  const discount = routeComplete ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
+  const totalPrice = subtotal - discount + shipping;
+
+  /** Photos shown in the wall mockup: the explicit selection, padded with the newest stamps. */
+  const mockupPhotos = useMemo(() => {
+    const chosen = selected
+      .map((id) => entries.find((e) => e.locationId === id))
+      .filter(Boolean) as typeof entries;
+    const rest = entries.filter((e) => !selected.includes(e.locationId));
+    return [...chosen, ...rest].slice(0, activeFrame.slots);
+  }, [selected, entries, activeFrame.slots]);
 
   return (
     <MobileLayout>
@@ -221,37 +233,70 @@ function ShopPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border-4 border-gold bg-primary p-3">
-              <div
-                className={cn(
-                  "grid gap-1.5",
-                  activeFrame.slots === 1 ? "grid-cols-1" : activeFrame.slots === 3 ? "grid-cols-3" : "grid-cols-3",
-                )}
-              >
-                {Array.from({ length: activeFrame.slots }).map((_, i) => {
-                  const id = selected[i];
-                  const entry = entries.find((e) => e.locationId === id);
-                  return entry ? (
-                    <img
-                      key={i}
-                      src={entry.photo}
-                      alt=""
-                      className="aspect-square w-full rounded-lg object-cover"
-                    />
-                  ) : (
+            {/* Realistic wall mockup: lit plaster wall, hanging wire, wooden frame + matte. */}
+            <figure className="overflow-hidden rounded-2xl bg-[radial-gradient(120%_90%_at_50%_0%,#f4f1ec_0%,#e6e1d8_55%,#d8d2c7_100%)] px-6 pb-7 pt-5">
+              <div className="mx-auto flex w-fit flex-col items-center">
+                <span className="size-1.5 rounded-full bg-text/40" aria-hidden="true" />
+                <span
+                  className="h-4 w-16 border-x border-t border-text/25"
+                  style={{ borderRadius: "0 0 60% 60% / 0 0 100% 100%" }}
+                  aria-hidden="true"
+                />
+                <div
+                  className="rounded-[6px] p-3 shadow-[0_14px_28px_-10px_rgba(15,23,42,0.45)] ring-1 ring-black/20"
+                  style={{
+                    background:
+                      "linear-gradient(135deg,#6b4a2b 0%,#8a6236 25%,#5d3f24 55%,#7d5730 80%,#4e3520 100%)",
+                  }}
+                >
+                  <div className="rounded-[2px] bg-[#fbfaf7] p-3 shadow-[inset_0_2px_6px_rgba(15,23,42,0.18)]">
                     <div
-                      key={i}
-                      className="flex aspect-square w-full items-center justify-center rounded-lg border border-dashed border-gold/60 text-xs text-gold"
+                      className={cn(
+                        "grid gap-2",
+                        activeFrame.slots === 1 ? "grid-cols-1" : "grid-cols-3",
+                        activeFrame.slots === 1 ? "w-40" : activeFrame.slots === 3 ? "w-56" : "w-60",
+                      )}
                     >
-                      +
+                      {Array.from({ length: activeFrame.slots }).map((_, i) => {
+                        const entry = mockupPhotos[i];
+                        const location = entry
+                          ? LOCATIONS.find((l) => l.id === entry.locationId)
+                          : undefined;
+                        return entry ? (
+                          <img
+                            key={entry.locationId}
+                            src={entry.photo}
+                            alt={`${location?.name ?? ""} en el marco`}
+                            className="aspect-square w-full rounded-[2px] object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
+                          />
+                        ) : (
+                          <div
+                            key={`empty-${i}`}
+                            className="flex aspect-square w-full items-center justify-center rounded-[2px] bg-[#eceae4] text-lg text-text-muted/50"
+                            aria-hidden="true"
+                          >
+                            🏔️
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                    <p className="mt-3 text-center text-[10px] font-bold tracking-[0.18em] text-primary">
+                      LENK COLLECTOR BOX
+                    </p>
+                    <p className="text-center text-[9px] font-semibold text-text-muted">
+                      {activeFrame.dims} · {SECTORS.water.name.split(" ")[0]} Alpine Edition
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className="mt-1 h-3 w-[72%] rounded-full bg-text/15 blur-[3px]"
+                  aria-hidden="true"
+                />
               </div>
-              <p className="mt-2 text-center text-[11px] font-semibold text-gold">
-                LENK COLLECTOR BOX 🏔️ · {activeFrame.dims}
-              </p>
-            </div>
+              <figcaption className="mt-3 text-center text-[11px] font-semibold text-text-muted">
+                Vista previa en pared · marco {activeFrame.label} ({activeFrame.dims})
+              </figcaption>
+            </figure>
           </CardContent>
         </Card>
 
