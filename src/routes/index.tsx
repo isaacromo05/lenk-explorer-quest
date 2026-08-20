@@ -22,7 +22,8 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { entries, scanned, sectorProgress, hydrated } = usePassport();
+  const { entries, scanned, sectorProgress, hydrated, state } = usePassport();
+  const unlockedIds = Object.keys(state);
   const recent = [...entries].sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt)).slice(0, 3);
   return (
     <MobileLayout>
@@ -57,11 +58,12 @@ function HomePage() {
           <div className="grid gap-4">
             <RouteCard
               title="Ruta del Agua"
-              places="Simmenfälle, Sibe Brunne, Iffigfall"
+              places="Simmenfälle, Sibe Brunne, Iffigsee"
               mascot="Guardián del Agua"
               mascotEmoji="🌊"
               progress={sectorProgress("water")}
               variant="water"
+              unlockedIds={unlockedIds}
             />
             <RouteCard
               title="Ruta de las Cumbres"
@@ -70,6 +72,7 @@ function HomePage() {
               mascotEmoji="🏔️"
               progress={sectorProgress("summit")}
               variant="summit"
+              unlockedIds={unlockedIds}
             />
             <RouteCard
               title="Ruta Tradición & AlpKultur"
@@ -78,6 +81,7 @@ function HomePage() {
               mascotEmoji="🐄"
               progress={sectorProgress("culture")}
               variant="culture"
+              unlockedIds={unlockedIds}
             />
           </div>
         </section>
