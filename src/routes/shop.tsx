@@ -53,12 +53,6 @@ const ADDONS = [
 type AddonId = (typeof ADDONS)[number]["id"];
 
 const SHIPPING_HOME = 8;
-/** Route badges are earned per completed route; the gold medal is only for 8/8. */
-const ROUTE_BADGE: Record<SectorId, string> = {
-  water: "Insignia de la Ruta del Agua",
-  summit: "Insignia de la Ruta de las Cumbres",
-  culture: "Insignia de la Ruta Tradición & AlpKultur",
-};
 
 function chf(value: number) {
   return `CHF ${value.toFixed(2)}`;
