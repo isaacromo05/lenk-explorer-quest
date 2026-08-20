@@ -14,7 +14,14 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center justify-between bg-primary px-4 text-primary-foreground shadow-sm">
-        <span className="font-display text-lg font-bold tracking-tight">Lenk Quest 🏔️</span>
+        <div className="flex flex-col">
+          <span className="font-display text-lg font-bold leading-tight tracking-tight">
+            Lenk Quest 🏔️
+          </span>
+          <span className="text-[10px] font-semibold text-primary-foreground/80">
+            🟢 Modo Offline Activo
+          </span>
+        </div>
         <Badge
           variant="outline"
           className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground"
