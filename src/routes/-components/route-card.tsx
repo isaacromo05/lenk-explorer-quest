@@ -4,6 +4,7 @@ import { Compass } from "lucide-react";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
 import { GUARDIANS } from "@/lib/guardians";
+import { ROUTE_BADGES } from "@/lib/rewards";
 import { locationsBySector, type SectorId } from "@/lib/locations";
 import { RouteDetailModal } from "./route-detail-modal";
 
