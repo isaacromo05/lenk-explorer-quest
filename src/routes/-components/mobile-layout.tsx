@@ -3,14 +3,14 @@ import { BookOpenText, Home, ScanLine, ShoppingBag, type LucideIcon } from "luci
 
 import { Badge } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
+import { usePassport } from "@/lib/passport";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
-  scanned?: number;
-  total?: number;
 }
 
-export function MobileLayout({ children, scanned = 0, total = 8 }: MobileLayoutProps) {
+export function MobileLayout({ children }: MobileLayoutProps) {
+  const { scanned, total, hydrated } = usePassport();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center justify-between bg-primary px-4 text-primary-foreground shadow-sm">
@@ -19,7 +19,7 @@ export function MobileLayout({ children, scanned = 0, total = 8 }: MobileLayoutP
           variant="outline"
           className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground"
         >
-          {scanned}/{total} QR Escaneados
+          {hydrated ? scanned : 0}/{total} QR Escaneados
         </Badge>
       </header>
 
