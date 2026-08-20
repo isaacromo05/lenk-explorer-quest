@@ -1,9 +1,11 @@
-import badgeCulture from "@/assets/illustrations/badge-culture.png";
-import badgeSummit from "@/assets/illustrations/badge-summit.png";
-import badgeWater from "@/assets/illustrations/badge-water.png";
-import pinBack from "@/assets/illustrations/pin-back.png";
-import pinFront from "@/assets/illustrations/pin-front.png";
 import type { SectorId } from "./locations";
+
+/** Official static asset paths — never generated dynamically. */
+const badgeWater = "/assets/insignia-agua.png";
+const badgeSummit = "/assets/insignia-cumbres.png";
+const badgeCulture = "/assets/insignia-tradicion.png";
+const pinFront = "/assets/pin-gold-front.png";
+const pinBack = "/assets/pin-gold-back.png";
 
 export interface RouteBadge {
   sector: SectorId;
@@ -36,7 +38,7 @@ export const ROUTE_BADGES: Record<SectorId, RouteBadge> = {
 
 /** Supreme reward for 8/8: a two-sided collector pin. */
 export const GOLD_PIN = {
-  name: "Lenk Gold Edition",
+  name: "Lenk Gold / Imperial Edition",
   serial: "№ 0382",
   front: {
     image: pinFront,
