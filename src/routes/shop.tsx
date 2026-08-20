@@ -20,6 +20,8 @@ import { ROUTE_BADGES } from "@/lib/rewards";
 import { GUARDIANS } from "@/lib/guardians";
 import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
+import { GuardianFigureSelector } from "./-components/guardian-figure-selector";
+
 
 export const Route = createFileRoute("/shop")({
   head: () => ({
