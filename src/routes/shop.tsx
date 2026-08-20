@@ -297,44 +297,35 @@ function ShopPage() {
                   }}
                 >
                   <div className="rounded-[2px] bg-[#fbfaf7] p-3 shadow-[inset_0_2px_6px_rgba(15,23,42,0.18)]">
-                    <div
-                      className={cn(
-                        "grid gap-2",
-                        gridClass,
-                      )}
-                    >
-                      {Array.from({ length: slotCount }).map((_, i) => {
-                        const entry = mockupPhotos[i];
-                        const location = entry
-                          ? LOCATIONS.find((l) => l.id === entry.locationId)
-                          : undefined;
-                        return entry ? (
-                          <button
-                            key={entry.locationId}
-                            type="button"
-                            onClick={() => setPickerIndex(i)}
-                            aria-label={`Cambiar la foto de la posición ${i + 1}`}
-                            className="block w-full overflow-hidden rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            <img
-                              src={entry.photo}
-                              alt={`${location?.name ?? ""} en el marco`}
-                              className="aspect-square w-full object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
-                            />
-                          </button>
-                        ) : (
-                          <button
-                            key={`empty-${i}`}
-                            type="button"
-                            onClick={() => setPickerIndex(i)}
-                            aria-label={`Añadir una foto en la posición ${i + 1}`}
-                            className="flex aspect-square w-full items-center justify-center rounded-[2px] bg-[#eceae4] text-lg text-text-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            <span aria-hidden="true">＋</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {mockupPhotos.length === 0 ? (
+                      <div className="flex aspect-[4/5] w-44 items-center justify-center rounded-[2px] bg-[#eceae4] px-4 text-center text-[11px] font-semibold text-text-muted">
+                        Selecciona tus fotos para ver el collage
+                      </div>
+                    ) : (
+                      <div className={cn("grid gap-2", layout.grid)}>
+                        {mockupPhotos.map((entry, i) => {
+                          const location = LOCATIONS.find((l) => l.id === entry.locationId);
+                          return (
+                            <button
+                              key={entry.locationId}
+                              type="button"
+                              onClick={() => setPickerIndex(i)}
+                              aria-label={`Cambiar la foto de la posición ${i + 1}`}
+                              className={cn(
+                                "block w-full overflow-hidden rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                layout.items[i],
+                              )}
+                            >
+                              <img
+                                src={entry.photo}
+                                alt={`${location?.name ?? ""} en el marco`}
+                                className="size-full object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                     <p className="mt-3 text-center text-[10px] font-bold tracking-[0.18em] text-primary">
                       LENK COLLECTOR BOX
                     </p>
