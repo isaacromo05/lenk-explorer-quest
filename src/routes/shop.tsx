@@ -400,7 +400,10 @@ function ShopPage() {
           </CardContent>
         </Card>
 
+        <GuardianFigureSelector />
+
         <Card>
+
           <CardHeader>
             <CardTitle>Extras y coleccionables</CardTitle>
             <CardDescription>Añade piezas físicas a tu caja.</CardDescription>
