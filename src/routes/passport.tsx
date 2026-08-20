@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Lock, ScanLine } from "lucide-react";
+import { Camera, Lock, ScanLine } from "lucide-react";
 import { useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Medal, Text } from "@/design-system";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/passport")({
 const dateFormatter = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short", year: "numeric" });
 
 function PassportPage() {
-  const { state, scanned, total, hydrated, sectorProgress, unlock, remove } = usePassport();
+  const { state, scanned, total, hydrated, sectorProgress, setPhoto, remove } = usePassport();
   const allDone = hydrated && scanned === total;
   const [managing, setManaging] = useState<Location | null>(null);
   const [retaking, setRetaking] = useState<Location | null>(null);
@@ -92,7 +92,7 @@ function PassportPage() {
               const sector = SECTORS[location.sector];
               return (
                 <Card key={location.id} className="overflow-hidden">
-                  {entry ? (
+                  {entry?.photo ? (
                     <button
                       type="button"
                       onClick={() => setManaging(location)}
@@ -106,6 +106,19 @@ function PassportPage() {
                         loading="lazy"
                       />
                     </button>
+                  ) : entry ? (
+                    <div className="flex aspect-square w-full flex-col items-center justify-center gap-3 bg-background">
+                      <span className="text-4xl" aria-hidden="true">
+                        {sector.mascotEmoji}
+                      </span>
+                      <Text tone="muted" size="sm">
+                        Desbloqueado · foto pendiente
+                      </Text>
+                      <Button variant="gold" size="sm" onClick={() => setRetaking(location)}>
+                        <Camera className="size-4" aria-hidden="true" />
+                        Tomar foto
+                      </Button>
+                    </div>
                   ) : (
                     <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 bg-background">
                       <span className="text-4xl opacity-30 grayscale" aria-hidden="true">
@@ -119,15 +132,15 @@ function PassportPage() {
                       <Text className="font-semibold">{location.name}</Text>
                       <Text tone="muted" size="sm">
                         {entry
-                          ? dateFormatter.format(new Date(entry.unlockedAt))
+                          ? `${dateFormatter.format(new Date(entry.unlockedAt))}${entry.photo ? "" : " · sin foto"}`
                           : "Bloqueado — escanea su QR"}
                       </Text>
                     </div>
-                    <Badge variant={entry ? "gold" : "outline"}>
+                    <Badge variant={entry?.photo ? "gold" : entry ? "primary" : "outline"}>
                       <span aria-hidden="true" className={cn(!entry && "grayscale")}>
                         {sector.mascotEmoji}
                       </span>
-                      {entry ? "Sellado" : "Pendiente"}
+                      {entry?.photo ? "Sellado" : entry ? "Desbloqueado" : "Pendiente"}
                     </Badge>
                   </CardContent>
                 </Card>
@@ -144,7 +157,7 @@ function PassportPage() {
         </Button>
       </div>
 
-      {managing && managingEntry && (
+      {managing && managingEntry?.photo && (
         <PhotoManageModal
           location={managing}
           photo={managingEntry.photo}
@@ -155,7 +168,7 @@ function PassportPage() {
             setManaging(null);
           }}
           onDelete={() => {
-            remove(managing.id);
+            setPhoto(managing.id, null);
             setManaging(null);
           }}
         />
@@ -167,7 +180,7 @@ function PassportPage() {
           mode="retake"
           onClose={() => setRetaking(null)}
           onSave={(photo) => {
-            unlock(retaking.id, photo);
+            setPhoto(retaking.id, photo);
             setRetaking(null);
           }}
         />
