@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { forwardRef, type ButtonHTMLAttributes } from "react";
+import { cloneElement, forwardRef, isValidElement, type ButtonHTMLAttributes } from "react";
 
 import { cn } from "../lib/utils";
 
@@ -17,7 +17,7 @@ const buttonVariants = cva(
       size: {
         sm: "h-9 px-3 text-sm",
         md: "h-11 px-5 text-sm",
-        lg: "h-13 px-7 text-base",
+        lg: "h-14 px-7 text-base",
       },
     },
     defaultVariants: { variant: "primary", size: "md" },
@@ -26,13 +26,28 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
 
 /** Primary action control. Use `gold` only for reward/premium actions. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />
-  ),
+  ({ className, variant, size, asChild, children, ...props }, ref) => {
+    const classes = cn(buttonVariants({ variant, size }), className);
+    if (asChild && isValidElement(children)) {
+      const child = children as React.ReactElement<{ className?: string; ref?: React.Ref<unknown> }>;
+      return cloneElement(child, {
+        className: cn(classes, child.props.className),
+        ref,
+        ...props,
+      });
+    }
+    return (
+      <button ref={ref} className={classes} {...props}>
+        {children}
+      </button>
+    );
+  },
 );
 Button.displayName = "Button";
 
