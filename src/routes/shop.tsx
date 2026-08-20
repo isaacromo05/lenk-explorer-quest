@@ -43,7 +43,7 @@ const FRAMES = [
 type FrameId = (typeof FRAMES)[number]["id"];
 
 const ADDONS = [
-  { id: "medal", emoji: "🏅", name: "Medalla física de sector", note: "Gratis si tienes un sector completo", price: 12 },
+  { id: "medal", emoji: "🎖️", name: "Insignia Oficial de Ruta (física)", note: "Gratis al completar una ruta entera", price: 12 },
   { id: "figure", emoji: "🗿", name: "Figura 3D del Guardián", note: "Coleccionable pintado a mano", price: 29 },
   { id: "magnet", emoji: "🌲", name: "Imán grabado en madera de Lenk", note: "Madera local grabada a láser", price: 9 },
   { id: "passport", emoji: "📜", name: "Pasaporte / Certificado alpino impreso", note: "Con sello oficial de Lenk", price: 15 },
@@ -52,14 +52,55 @@ const ADDONS = [
 type AddonId = (typeof ADDONS)[number]["id"];
 
 const SHIPPING_HOME = 8;
-const MEDAL_TIER: Record<SectorId, string> = {
-  water: "Medalla de Bronce del Sector Agua",
-  summit: "Medalla de Plata del Sector Cumbres",
-  culture: "Medalla de Tradición AlpKultur",
+/** Route badges are earned per completed route; the gold medal is only for 8/8. */
+const ROUTE_BADGE: Record<SectorId, string> = {
+  water: "Insignia de la Ruta del Agua",
+  summit: "Insignia de la Ruta de las Cumbres",
+  culture: "Insignia de la Ruta Tradición & AlpKultur",
 };
 
 function chf(value: number) {
   return `CHF ${value.toFixed(2)}`;
+}
+
+/**
+ * Balanced, always-filled collage templates: no empty slots, no "+" placeholders.
+ * Each entry gives the grid column setup plus the span classes per photo.
+ */
+function collageLayout(count: number): { grid: string; items: string[] } {
+  switch (count) {
+    case 1:
+      return { grid: "grid-cols-1 w-44", items: ["col-span-1 aspect-square"] };
+    case 2:
+      return { grid: "grid-cols-2 w-56", items: Array(2).fill("col-span-1 aspect-square") };
+    case 3:
+      return {
+        grid: "grid-cols-2 w-56",
+        items: ["col-span-2 aspect-[2/1]", "col-span-1 aspect-square", "col-span-1 aspect-square"],
+      };
+    case 4:
+      return { grid: "grid-cols-2 w-56", items: Array(4).fill("col-span-1 aspect-square") };
+    case 5:
+      return {
+        grid: "grid-cols-6 w-60",
+        items: [
+          "col-span-3 aspect-square",
+          "col-span-3 aspect-square",
+          "col-span-2 aspect-square",
+          "col-span-2 aspect-square",
+          "col-span-2 aspect-square",
+        ],
+      };
+    case 6:
+      return { grid: "grid-cols-3 w-60", items: Array(6).fill("col-span-1 aspect-square") };
+    case 7:
+      return {
+        grid: "grid-cols-6 w-60",
+        items: ["col-span-6 aspect-[2/1]", ...Array(6).fill("col-span-2 aspect-square")],
+      };
+    default:
+      return { grid: "grid-cols-4 w-64", items: Array(count).fill("col-span-1 aspect-square") };
+  }
 }
 
 function ShopPage() {
@@ -118,13 +159,7 @@ function ShopPage() {
     [selected, entries],
   );
 
-  const slotCount = Math.max(mockupPhotos.length + 1, 1);
-  const gridClass =
-    mockupPhotos.length <= 1
-      ? "grid-cols-1 w-44"
-      : mockupPhotos.length <= 4
-        ? "grid-cols-2 w-56"
-        : "grid-cols-3 w-60";
+  const layout = collageLayout(mockupPhotos.length);
 
   return (
     <MobileLayout>
