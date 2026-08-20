@@ -28,7 +28,7 @@ export function PhotoManageModal({
       aria-label={`Foto de ${location.name}`}
       className="fixed inset-0 z-[100] flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
     >
-      <div className="w-full max-w-md rounded-2xl bg-surface p-5 shadow-lg">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto overscroll-contain scroll-smooth rounded-2xl bg-surface p-5 pb-12 shadow-lg">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <Badge variant="gold" className="mb-2">
