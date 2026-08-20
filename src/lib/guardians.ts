@@ -1,4 +1,5 @@
 import figura3dPreview from "@/assets/figura-3d-textura-preview.glb.asset.json";
+import cumbresModel from "@/assets/guardian-cumbres.glb.asset.json";
 
 import type { SectorId } from "./locations";
 
@@ -12,9 +13,10 @@ const GUARDIAN_IMAGES = {
 /** Optional 3D models (.glb). Files that are not published yet fall back to the PNG. */
 const GUARDIAN_MODELS = {
   water: figura3dPreview.url,
-  summit: "/assets/guardian-cumbres.glb",
+  summit: cumbresModel.url,
   culture: "/assets/guardian-tradicion.glb",
 } as const;
+
 
 export interface Guardian {
   /** Stable id of the guardian, e.g. "guardian-agua". */
