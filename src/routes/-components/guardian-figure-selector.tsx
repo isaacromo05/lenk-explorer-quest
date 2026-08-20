@@ -90,6 +90,18 @@ function useModelPreload(activeUrl: string) {
   return available;
 }
 
+/** Skeleton mostrado mientras se prepara o descarga el modelo 3D. */
+function FigureSkeleton({ label }: { label: string }) {
+  return (
+    <div className="flex h-[260px] flex-col items-center justify-center gap-3" aria-hidden="true">
+      <div className="h-32 w-24 animate-pulse rounded-2xl bg-border" />
+      <div className="h-5 w-40 animate-pulse rounded-full bg-border" />
+      <div className="h-3 w-28 animate-pulse rounded-full bg-border" />
+      <span className="sr-only">{label}</span>
+    </div>
+  );
+}
+
 /** Tabbed 3D collectible viewer for the three official Lenk guardians. */
 export function GuardianFigureSelector() {
   const [sector, setSector] = useState<SectorId>("water");
@@ -99,6 +111,7 @@ export function GuardianFigureSelector() {
   const [progress, setProgress] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const viewerRef = useRef<HTMLElement | null>(null);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useModelViewerScript(hasModel === true);
 
@@ -125,6 +138,27 @@ export function GuardianFigureSelector() {
     setLoaded(false);
   };
 
+  /** Flechas / Inicio / Fin mueven el foco entre pestañas, como pide WAI-ARIA. */
+  const onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const keys = ["ArrowRight", "ArrowLeft", "Home", "End"];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+    const last = GUARDIAN_LIST.length - 1;
+    const nextIndex =
+      event.key === "ArrowRight"
+        ? (index + 1) % GUARDIAN_LIST.length
+        : event.key === "ArrowLeft"
+          ? (index + last) % GUARDIAN_LIST.length
+          : event.key === "Home"
+            ? 0
+            : last;
+    const nextSector = GUARDIAN_LIST[nextIndex].sector;
+    selectSector(nextSector);
+    tabRefs.current[nextSector]?.focus();
+  };
+
+  const panelId = `guardian-panel-${sector}`;
+
   return (
     <Card id="figura-3d-coleccion">
       <CardHeader>
@@ -133,42 +167,52 @@ export function GuardianFigureSelector() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div role="tablist" aria-label="Guardianes de Lenk" className="grid grid-cols-3 gap-2">
-          {GUARDIAN_LIST.map((item) => (
-            <button
-              key={item.sector}
-              type="button"
-              role="tab"
-              aria-selected={sector === item.sector}
-              onClick={() => selectSector(item.sector)}
-              onMouseEnter={() => warmModel(GUARDIANS[item.sector].model3d)}
-              onFocus={() => warmModel(GUARDIANS[item.sector].model3d)}
-              className={cn(
-                "rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                sector === item.sector
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border bg-surface text-text-muted",
-              )}
-            >
-              <span className="block text-lg" aria-hidden="true">
-                {item.emoji}
-              </span>
-              {item.tab}
-            </button>
-          ))}
+          {GUARDIAN_LIST.map((item, index) => {
+            const selected = sector === item.sector;
+            return (
+              <button
+                key={item.sector}
+                ref={(node) => {
+                  tabRefs.current[item.sector] = node;
+                }}
+                type="button"
+                role="tab"
+                id={`guardian-tab-${item.sector}`}
+                aria-selected={selected}
+                aria-controls={selected ? panelId : undefined}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => selectSector(item.sector)}
+                onKeyDown={(event) => onTabKeyDown(event, index)}
+                onMouseEnter={() => warmModel(GUARDIANS[item.sector].model3d)}
+                onFocus={() => warmModel(GUARDIANS[item.sector].model3d)}
+                className={cn(
+                  "rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+                  selected ? "border-primary bg-primary/5 text-primary" : "border-border bg-surface text-text-muted",
+                )}
+              >
+                <span className="block text-lg" aria-hidden="true">
+                  {item.emoji}
+                </span>
+                {item.tab}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="rounded-2xl border border-border bg-background p-4">
+        <div
+          role="tabpanel"
+          id={panelId}
+          aria-labelledby={`guardian-tab-${sector}`}
+          tabIndex={0}
+          className="rounded-2xl border border-border bg-background p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
           {hasModel === null ? (
-            <div
-              className="flex h-[260px] flex-col items-center justify-center gap-2"
-              role="status"
-              aria-live="polite"
-            >
-              <Loader2 className="size-6 animate-spin text-primary" aria-hidden="true" />
-              <Text tone="muted" size="sm">
-                Preparando la figura 3D…
-              </Text>
-            </div>
+            <>
+              <FigureSkeleton label={`Preparando la figura 3D de ${guardian.name}`} />
+              <p role="status" aria-live="polite" className="sr-only">
+                Preparando la figura 3D de {guardian.name}
+              </p>
+            </>
           ) : hasModel ? (
             <div className="relative">
               {/* @ts-expect-error -- model-viewer is a custom element */}
@@ -182,25 +226,32 @@ export function GuardianFigureSelector() {
                 auto-rotate
                 loading="eager"
                 reveal="auto"
+                aria-busy={!loaded}
                 style={{ width: "100%", height: "260px" }}
               />
               {!loaded && (
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-end gap-2 rounded-xl bg-background/70 p-4 backdrop-blur-sm"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="size-4 animate-spin text-primary" aria-hidden="true" />
-                    <Text size="sm" className="font-semibold">
-                      Cargando figura 3D · {progress}%
-                    </Text>
-                  </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
-                    <div
-                      className="h-full rounded-full bg-primary transition-[width] duration-300"
-                      style={{ width: `${Math.max(progress, 6)}%` }}
-                    />
+                <div className="absolute inset-0 flex flex-col items-center justify-end gap-3 rounded-xl bg-background/80 p-4 backdrop-blur-sm">
+                  <FigureSkeleton label={`Cargando figura 3D de ${guardian.name}`} />
+                  <div
+                    className="w-full space-y-2"
+                    role="progressbar"
+                    aria-label={`Cargando figura 3D de ${guardian.name}`}
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="size-4 animate-spin text-primary" aria-hidden="true" />
+                      <Text size="sm" className="font-semibold">
+                        Cargando figura 3D · {progress}%
+                      </Text>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+                      <div
+                        className="h-full rounded-full bg-primary transition-[width] duration-300"
+                        style={{ width: `${Math.max(progress, 6)}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -244,7 +295,13 @@ export function GuardianFigureSelector() {
         </div>
 
         {hasModel === false && (
-          <Button variant="outline" size="sm" className="w-full" onClick={() => setPreview((p) => !p)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            aria-pressed={preview}
+            onClick={() => setPreview((p) => !p)}
+          >
             <Eye className="size-4" aria-hidden="true" />
             {preview ? "Reducir previsualización" : "Previsualizar el producto"}
           </Button>
