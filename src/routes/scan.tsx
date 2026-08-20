@@ -6,6 +6,7 @@ import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitl
 import { LOCATIONS, resolveLocation, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
+import { AchievementModal, type Achievement } from "./-components/achievement-modal";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
 
 export const Route = createFileRoute("/scan")({
@@ -24,10 +25,33 @@ export const Route = createFileRoute("/scan")({
 
 function ScanPage() {
   const navigate = useNavigate();
-  const { scanned, total, isUnlocked, unlock, hydrated } = usePassport();
+  const { scanned, total, isUnlocked, unlock, hydrated, sectorProgress } = usePassport();
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Location | null>(null);
+  const [achievement, setAchievement] = useState<Achievement | null>(null);
+
+  /** Unlock + fire confetti / achievement modals when a route or the full quest completes. */
+  const registerScan = useCallback(
+    (location: Location) => {
+      const already = isUnlocked(location.id);
+      const sector = sectorProgress(location.sector);
+      unlock(location.id);
+      if (already) return;
+      const sectorDone = sector.current + 1 >= sector.total;
+      const questDone = scanned + 1 >= total;
+      if (!sectorDone && !questDone) return;
+      void import("canvas-confetti").then(({ default: confetti }) => {
+        confetti(
+          questDone
+            ? { particleCount: 220, spread: 110, origin: { y: 0.6 }, colors: ["#D4AF37", "#F4E4A6", "#FFFFFF"] }
+            : { particleCount: 140, spread: 80, origin: { y: 0.6 }, colors: ["#1A2B4C", "#2D5A27", "#D4AF37"] },
+        );
+      });
+      setAchievement(questDone ? { kind: "gold" } : { kind: "route", sector: location.sector });
+    },
+    [isUnlocked, scanned, sectorProgress, total, unlock],
+  );
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -71,7 +95,7 @@ function ScanPage() {
           const found = result?.data ? resolveLocation(result.data) : undefined;
           if (found) {
             stop();
-            unlock(found.id);
+            registerScan(found);
             setPending(found);
             return;
           }
@@ -83,7 +107,7 @@ function ScanPage() {
       setError("No pudimos acceder a la cámara. Usa los botones de prueba para simular un escaneo.");
       setActive(false);
     }
-  }, [stop, unlock]);
+  }, [stop, registerScan]);
 
   useEffect(() => stop, [stop]);
 
@@ -144,7 +168,7 @@ function ScanPage() {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Los 8 hitos de Lenk</CardTitle>
+              <CardTitle>Barra dev — simular captura de los 8 hitos</CardTitle>
               <CardDescription>
                 Bloqueados por defecto 🔒 — en modo de pruebas puedes simular el escaneo de su QR
                 para desbloquearlos.
@@ -161,7 +185,7 @@ function ScanPage() {
                     className="h-auto flex-col items-start gap-1 py-3 text-left"
                     onClick={() => {
                       stop();
-                      unlock(location.id);
+                      registerScan(location);
                       setPending(location);
                     }}
                   >
@@ -199,6 +223,9 @@ function ScanPage() {
             void navigate({ to: "/passport" });
           }}
         />
+      )}
+      {achievement && (
+        <AchievementModal achievement={achievement} onClose={() => setAchievement(null)} />
       )}
     </MobileLayout>
   );
