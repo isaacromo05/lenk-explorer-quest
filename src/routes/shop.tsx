@@ -498,7 +498,7 @@ function ShopPage() {
           role="dialog"
           aria-modal="true"
           aria-label="Elegir foto para el marco"
-          className="fixed inset-0 z-50 flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
         >
           <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-5 shadow-lg">
             <div className="mb-4 flex items-start justify-between gap-3">

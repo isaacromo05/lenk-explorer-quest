@@ -172,7 +172,7 @@ export function PhotoCaptureModal({
       role="dialog"
       aria-modal="true"
       aria-label={`Lugar desbloqueado: ${location.name}`}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
     >
       <div className="w-full max-w-md rounded-2xl bg-surface p-5 shadow-lg">
         {stage === "celebrate" && (
