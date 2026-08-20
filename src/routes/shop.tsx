@@ -412,9 +412,7 @@ function ShopPage() {
             <CardDescription>Añade piezas físicas a tu caja.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {ADDONS.map((addon) => {
-              const free = addon.id === "medal" && medalFree;
-              return (
+            {ADDONS.map((addon) => (
                 <label
                   key={addon.id}
                   className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface p-3"
@@ -432,14 +430,9 @@ function ShopPage() {
                     <span className="block text-sm font-semibold text-text">{addon.name}</span>
                     <span className="block text-xs text-text-muted">{addon.note}</span>
                   </span>
-                  {free ? (
-                    <Badge variant="gold">Gratis</Badge>
-                  ) : (
-                    <span className="text-sm font-semibold text-primary">{chf(addon.price)}</span>
-                  )}
+                  <span className="text-sm font-semibold text-primary">{chf(addon.price)}</span>
                 </label>
-              );
-            })}
+            ))}
           </CardContent>
         </Card>
 
@@ -449,33 +442,14 @@ function ShopPage() {
             <CardDescription>Resumen de tu pedido en francos suizos.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                aria-pressed={delivery === "home"}
-                onClick={() => setDelivery("home")}
-                className={cn(
-                  "flex flex-col items-start gap-1 rounded-xl border p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  delivery === "home" ? "border-primary bg-primary/5" : "border-border bg-surface",
-                )}
-              >
-                <Truck className="size-4 text-primary" aria-hidden="true" />
-                <span className="text-sm font-semibold text-primary">Envío a domicilio</span>
-                <span className="text-xs text-text-muted">{chf(SHIPPING_HOME)}</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={delivery === "pickup"}
-                onClick={() => setDelivery("pickup")}
-                className={cn(
-                  "flex flex-col items-start gap-1 rounded-xl border p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  delivery === "pickup" ? "border-primary bg-primary/5" : "border-border bg-surface",
-                )}
-              >
-                <Store className="size-4 text-primary" aria-hidden="true" />
-                <span className="text-sm font-semibold text-primary">Recoger en Lenk</span>
-                <span className="text-xs text-text-muted">Oficina de Turismo · Gratis</span>
-              </button>
+            <div className="flex items-center gap-3 rounded-xl border border-primary bg-primary/5 p-3">
+              <Truck className="size-5 text-primary" aria-hidden="true" />
+              <div>
+                <span className="block text-sm font-semibold text-primary">Envío a domicilio</span>
+                <span className="block text-xs text-text-muted">
+                  Tienda 100% online · {chf(SHIPPING_HOME)}
+                </span>
+              </div>
             </div>
 
             <form
@@ -510,22 +484,18 @@ function ShopPage() {
                 </label>
                 <Input id="shop-email" name="email" type="email" required maxLength={255} autoComplete="email" />
               </div>
-              {delivery === "home" && (
-                <>
-                  <div className="space-y-1">
+              <div className="space-y-1">
                     <label htmlFor="shop-address" className="text-xs font-semibold text-text-muted">
                       Dirección
                     </label>
-                    <Input id="shop-address" name="address" required maxLength={200} autoComplete="street-address" />
-                  </div>
-                  <div className="space-y-1">
+                <Input id="shop-address" name="address" required maxLength={200} autoComplete="street-address" />
+              </div>
+              <div className="space-y-1">
                     <label htmlFor="shop-zip" className="text-xs font-semibold text-text-muted">
                       Código postal
                     </label>
-                    <Input id="shop-zip" name="zip" required maxLength={10} autoComplete="postal-code" />
-                  </div>
-                </>
-              )}
+                <Input id="shop-zip" name="zip" required maxLength={10} autoComplete="postal-code" />
+              </div>
 
               <dl className="space-y-1 rounded-xl bg-background p-3 text-sm">
                 <div className="flex justify-between">
@@ -536,17 +506,26 @@ function ShopPage() {
                 </div>
                 {addons.map((id) => {
                   const addon = ADDONS.find((a) => a.id === id)!;
-                  const free = addon.id === "medal" && medalFree;
                   return (
                     <div key={id} className="flex justify-between">
                       <dt className="text-text-muted">{addon.name}</dt>
-                      <dd className="font-semibold text-text">{free ? "Gratis" : chf(addon.price)}</dd>
+                      <dd className="font-semibold text-text">{chf(addon.price)}</dd>
                     </div>
                   );
                 })}
+                {giftSectors.map((sector) => (
+                  <div key={sector} className="flex justify-between">
+                    <dt className="text-text-muted">
+                      🎁 {ROUTE_BADGES[sector].shortName} (regalo)
+                    </dt>
+                    <dd className="font-semibold text-gold-foreground">
+                      {giftsFree ? "0,00 € · Gratis" : chf(12)}
+                    </dd>
+                  </div>
+                ))}
                 <div className="flex justify-between">
                   <dt className="text-text-muted">
-                    {delivery === "home" ? "Envío a domicilio" : "Recogida en Lenk"}
+                    Envío a domicilio
                   </dt>
                   <dd className="font-semibold text-text">{shipping ? chf(shipping) : "Gratis"}</dd>
                 </div>
