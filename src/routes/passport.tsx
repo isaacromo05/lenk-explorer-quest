@@ -96,47 +96,101 @@ function PassportPage() {
           </CardContent>
         </Card>
 
-        <section className="grid grid-cols-3 gap-3">
-          {(["water", "summit", "culture"] as const).map((sector) => {
-            const progress = sectorProgress(sector);
-            const complete = hydrated && progress.current === progress.total;
-            return (
-              <Card key={sector} className="p-0">
-                <button
-                  type="button"
-                  onClick={() => setRouteSector(sector)}
-                  aria-label={`Ver detalles de la ${SECTORS[sector].name}`}
-                  className="flex w-full flex-col items-center rounded-2xl p-4 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  <Medal
-                    label={SECTORS[sector].mascot}
-                    locked={!complete}
-                    className={cn(!complete && "opacity-70")}
+        <section className="space-y-4">
+          <Heading as="h2" level={3}>
+            Vitrina de insignias
+          </Heading>
+          <div className="grid grid-cols-2 gap-3">
+            {(["water", "summit", "culture"] as const).map((sector) => {
+              const progress = sectorProgress(sector);
+              const complete = hydrated && progress.current === progress.total;
+              const badge = ROUTE_BADGES[sector];
+              return (
+                <Card key={sector} className={cn("p-0", complete && "shadow-md ring-2 ring-gold")}>
+                  <button
+                    type="button"
+                    onClick={() => setRouteSector(sector)}
+                    aria-label={`Ver detalles de la ${SECTORS[sector].name}`}
+                    className="flex w-full flex-col items-center rounded-2xl p-4 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
-                    <span className={cn(!complete && "grayscale")} aria-hidden="true">
-                      {SECTORS[sector].mascotEmoji}
+                    <span className="relative flex size-20 items-center justify-center">
+                      <img
+                        src={badge.image}
+                        alt={complete ? badge.name : `${badge.name} bloqueada`}
+                        width={512}
+                        height={512}
+                        loading="lazy"
+                        className={cn(
+                          "size-20 object-contain",
+                          complete ? "drop-shadow-md" : "opacity-25 grayscale",
+                        )}
+                      />
+                      {!complete && (
+                        <Lock
+                          className="absolute size-6 text-text-muted"
+                          aria-hidden="true"
+                        />
+                      )}
                     </span>
-                  </Medal>
-                  <Text tone="muted" size="sm" className="mt-2 text-center text-xs">
-                    {progress.current}/{progress.total}
-                  </Text>
-                </button>
-              </Card>
-            );
-          })}
+                    <Text size="sm" className="mt-2 text-center text-xs font-semibold">
+                      {badge.shortName}
+                    </Text>
+                    <Text tone="muted" size="sm" className="text-center text-xs">
+                      {progress.current}/{progress.total}
+                    </Text>
+                  </button>
+                </Card>
+              );
+            })}
+
+            <Card className={cn("p-0", allDone && "shadow-md ring-2 ring-gold")}>
+              <button
+                type="button"
+                onClick={() => allDone && setPinOpen(true)}
+                disabled={!allDone}
+                aria-label={
+                  allDone
+                    ? `Ver el pin ${GOLD_PIN.name} en 3D`
+                    : `Pin ${GOLD_PIN.name} bloqueado — completa los 8 hitos`
+                }
+                className="flex w-full flex-col items-center rounded-2xl p-4 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed"
+              >
+                <span className="relative flex size-20 items-center justify-center">
+                  <img
+                    src={GOLD_PIN.front.image}
+                    alt={allDone ? `Pin ${GOLD_PIN.name}` : `Pin ${GOLD_PIN.name} bloqueado`}
+                    width={512}
+                    height={512}
+                    loading="lazy"
+                    className={cn(
+                      "size-20 object-contain",
+                      allDone ? "drop-shadow-md" : "opacity-25 grayscale",
+                    )}
+                  />
+                  {!allDone && <Lock className="absolute size-6 text-text-muted" aria-hidden="true" />}
+                </span>
+                <Text size="sm" className="mt-2 text-center text-xs font-semibold">
+                  {GOLD_PIN.name}
+                </Text>
+                <Text tone="muted" size="sm" className="text-center text-xs">
+                  {allDone ? GOLD_PIN.serial : `${scanned}/${total} hitos`}
+                </Text>
+              </button>
+            </Card>
+          </div>
+          {allDone && (
+            <Card className="shadow-md">
+              <CardContent className="flex items-center gap-4">
+                <Medal label="Lenk Gold Edition">🏅</Medal>
+                <Text size="sm">
+                  ¡Has completado los 8 hitos del valle! Pulsa el Pin Supremo para verlo en 3D y
+                  obtener tu credencial digital de canje.
+                </Text>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
-        {allDone && (
-          <Card className="shadow-md">
-            <CardContent className="flex items-center gap-4">
-              <Medal label="Medalla de Oro Trans-Simmental">🏅</Medal>
-              <Text size="sm">
-                ¡Has completado los 8 hitos del valle de Lenk! Canjea tu Medalla de Oro
-                Trans-Simmental en la tienda.
-              </Text>
-            </CardContent>
-          </Card>
-        )}
 
         <section className="space-y-4">
           <Heading as="h2" level={3}>
