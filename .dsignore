@@ -1,3 +1,4 @@
+src/routes/**
 src/design-system/showcase/**
 src/lib/**
 src/router.tsx
