@@ -1,4 +1,4 @@
-import { Camera, RefreshCw, SwitchCamera, X } from "lucide-react";
+import { Camera, Clock, RefreshCw, SwitchCamera, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Badge, Button, Heading, Text } from "@/design-system";
@@ -7,10 +7,12 @@ import { SECTORS, type Location } from "@/lib/locations";
 
 interface PhotoCaptureModalProps {
   location: Location;
-  /** "unlock" shows the mascot celebration first; "retake" goes straight to the live camera. */
+  /** "unlock" shows the celebration + choice first; "retake" goes straight to the live camera. */
   mode?: "unlock" | "retake";
   onClose: () => void;
   onSave: (photo: string) => void;
+  /** "Hacer foto más tarde" — the location stays unlocked without a photo. */
+  onLater?: () => void;
 }
 
 function token(name: string, fallback: string) {
