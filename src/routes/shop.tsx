@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, CreditCard, ShoppingBag, Store, Truck, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, CreditCard, Gift, Lock, ShoppingBag, Truck, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Badge,
@@ -16,6 +16,8 @@ import {
   cn,
 } from "@/design-system";
 import { LOCATIONS, SECTORS, type SectorId } from "@/lib/locations";
+import { ROUTE_BADGES } from "@/lib/rewards";
+import { GUARDIANS } from "@/lib/guardians";
 import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
 
@@ -43,7 +45,6 @@ const FRAMES = [
 type FrameId = (typeof FRAMES)[number]["id"];
 
 const ADDONS = [
-  { id: "medal", emoji: "🎖️", name: "Insignia Oficial de Ruta (física)", note: "Gratis al completar una ruta entera", price: 12 },
   { id: "figure", emoji: "🗿", name: "Figura 3D del Guardián", note: "Coleccionable pintado a mano", price: 29 },
   { id: "magnet", emoji: "🌲", name: "Imán grabado en madera de Lenk", note: "Madera local grabada a láser", price: 9 },
   { id: "passport", emoji: "📜", name: "Pasaporte / Certificado alpino impreso", note: "Con sello oficial de Lenk", price: 15 },
@@ -108,16 +109,25 @@ function ShopPage() {
   const [frame, setFrame] = useState<FrameId>("m");
   const [selected, setSelected] = useState<string[]>([]);
   const [addons, setAddons] = useState<AddonId[]>([]);
-  const [delivery, setDelivery] = useState<"home" | "pickup">("home");
   const [paid, setPaid] = useState(false);
   const [pickerIndex, setPickerIndex] = useState<number | null>(null);
+  const [giftSectors, setGiftSectors] = useState<SectorId[]>([]);
+  const rewardsRef = useRef<HTMLElement | null>(null);
 
   const activeFrame = FRAMES.find((f) => f.id === frame)!;
   const completedSectors = (Object.keys(SECTORS) as SectorId[]).filter((s) => {
     const p = sectorProgress(s);
     return p.total > 0 && p.current === p.total;
   });
-  const medalFree = completedSectors.length > 0;
+  const toggleGift = (sector: SectorId) =>
+    setGiftSectors((prev) => (prev.includes(sector) ? prev.filter((s) => s !== sector) : [...prev, sector]));
+
+  /** Deep link from the route-completed modal: scroll to the rewards block. */
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#recompensas-desbloqueadas") {
+      rewardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   const toggleAddon = (id: AddonId) =>
     setAddons((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
@@ -135,18 +145,16 @@ function ShopPage() {
     });
 
   const addonTotal = useMemo(
-    () =>
-      addons.reduce((sum, id) => {
-        const addon = ADDONS.find((a) => a.id === id)!;
-        if (addon.id === "medal" && medalFree) return sum;
-        return sum + addon.price;
-      }, 0),
-    [addons, medalFree],
+    () => addons.reduce((sum, id) => sum + ADDONS.find((a) => a.id === id)!.price, 0),
+    [addons],
   );
 
-  const shipping = delivery === "home" ? SHIPPING_HOME : 0;
+  const shipping = SHIPPING_HOME;
   const routeComplete = scanned === total && total > 0;
-  const subtotal = activeFrame.price + addonTotal;
+  /** Paid products in the cart. Gifts stay at 0 CHF while there is at least one. */
+  const paidSubtotal = activeFrame.price + addonTotal;
+  const giftsFree = paidSubtotal > 0;
+  const subtotal = paidSubtotal + (giftsFree ? 0 : giftSectors.length * 12);
   const discount = routeComplete ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
   const totalPrice = subtotal - discount + shipping;
 
