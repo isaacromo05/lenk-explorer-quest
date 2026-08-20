@@ -187,6 +187,10 @@ function ScanPage() {
         <PhotoCaptureModal
           location={pending}
           onClose={() => setPending(null)}
+          onLater={() => {
+            setPending(null);
+            void navigate({ to: "/passport" });
+          }}
           onSave={(photo) => {
             unlock(pending.id, photo);
             setPending(null);
