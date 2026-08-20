@@ -58,21 +58,27 @@ export function RouteCard({ title, places, progress, variant, unlockedIds = [] }
             {/* Insignia de ruta (recompensa) en la esquina superior derecha */}
             <div
               className={cn(
-                "flex size-14 shrink-0 flex-col items-center justify-center rounded-full text-xl",
+                "flex size-16 shrink-0 flex-col items-center justify-center rounded-full p-1",
                 earned
-                  ? "bg-gold text-gold-foreground shadow-md"
-                  : "border border-dashed border-border bg-background text-text-muted opacity-70",
+                  ? "bg-gold/15 shadow-md ring-2 ring-gold"
+                  : "border border-dashed border-border bg-background opacity-70",
               )}
-              title={guardian.badgeName}
-              aria-label={
-                earned ? `${guardian.badgeName} conseguida` : `${guardian.badgeName} bloqueada`
-              }
+              title={routeBadge.name}
+              aria-label={earned ? `${routeBadge.name} conseguida` : `${routeBadge.name} bloqueada`}
             >
-              <span aria-hidden="true">{guardian.badgeEmoji}</span>
-              <span className="text-[9px] font-bold">
+              <img
+                src={routeBadge.image}
+                alt=""
+                width={512}
+                height={512}
+                loading="lazy"
+                className={cn("size-10 object-contain", !earned && "opacity-40 grayscale")}
+              />
+              <span className="text-[9px] font-bold text-primary">
                 {progress.current}/{progress.total}
               </span>
             </div>
+
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -108,9 +114,10 @@ export function RouteCard({ title, places, progress, variant, unlockedIds = [] }
               </Badge>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full" onClick={() => setOpen(true)}>
+          <Button variant="primary" size="sm" className="w-full" onClick={() => setOpen(true)}>
             <Compass className="size-4" aria-hidden="true" />
-            Explorar Ruta
+            Ver Detalles de Ruta
+
           </Button>
         </CardContent>
       </Card>
