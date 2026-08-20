@@ -59,6 +59,12 @@ export function usePassport() {
 
   const reset = useCallback(() => write({}), []);
 
+  const remove = useCallback((locationId: string) => {
+    const next = { ...read() };
+    delete next[locationId];
+    write(next);
+  }, []);
+
   const entries = LOCATIONS.map((l) => state[l.id]).filter(Boolean) as UnlockedEntry[];
 
   const sectorProgress = (sector: SectorId) => {
@@ -71,6 +77,7 @@ export function usePassport() {
     hydrated,
     unlock,
     reset,
+    remove,
     entries,
     scanned: entries.length,
     total: TOTAL_LOCATIONS,
