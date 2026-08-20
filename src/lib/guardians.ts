@@ -56,7 +56,7 @@ export const GUARDIANS: Record<SectorId, Guardian> = {
     model3d: GUARDIAN_MODELS.summit,
     name: "Íbice Guardián de Cumbres",
     sector: "Ruta de las Cumbres",
-    description: "Ágil íbice de las cumbres de Betelberg y los acantilados de Gryden.",
+    description: "Ágil íbice explorador de Betelberg y los acantilados de Gryden.",
     badgeEmoji: "🏔️",
     badgeName: "Insignia de Cumbres",
     story:
@@ -68,7 +68,7 @@ export const GUARDIANS: Record<SectorId, Guardian> = {
     model3d: GUARDIAN_MODELS.culture,
     name: "Queso Alpino Guardián de Tradición",
     sector: "Ruta Tradición & AlpKultur",
-    description: "Cuña de queso Berner Alpkäse con cencerro, símbolo de la cultura de Lenk.",
+    description: "Cuña de queso Berner Alpkäse con cencerro, guardián de la cultura de Lenk.",
     badgeEmoji: "🧀",
     badgeName: "Insignia de Tradición",
     story:
