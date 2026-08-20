@@ -1,7 +1,12 @@
-import guardianCulture from "@/assets/illustrations/guardian-culture.png";
-import guardianSummit from "@/assets/illustrations/guardian-summit.png";
-import guardianWater from "@/assets/illustrations/guardian-water.png";
 import type { SectorId } from "./locations";
+
+/** Official static asset paths — never generated dynamically. */
+const GUARDIAN_IMAGES = {
+  water: "/assets/guardian-agua.png",
+  summit: "/assets/guardian-cumbres.png",
+  culture: "/assets/guardian-tradicion.png",
+} as const;
+
 
 export interface Guardian {
   /** 3D mascot render for the sector. */
