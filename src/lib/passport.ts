@@ -44,7 +44,9 @@ export function usePassport() {
     setHydrated(true);
     const listener = (s: PassportState) => setState({ ...s });
     listeners.add(listener);
-    return () => listeners.delete(listener);
+    return () => {
+      listeners.delete(listener);
+    };
   }, []);
 
   const unlock = useCallback((locationId: string, photo: string) => {
