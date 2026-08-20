@@ -62,7 +62,7 @@ function chf(value: number) {
 }
 
 function ShopPage() {
-  const { entries, isUnlocked, sectorProgress, scanned, total } = usePassport();
+  const { entries, sectorProgress, scanned, total } = usePassport();
   const [frame, setFrame] = useState<FrameId>("m");
   const [selected, setSelected] = useState<string[]>([]);
   const [addons, setAddons] = useState<AddonId[]>([]);
