@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, CreditCard, ShoppingBag, Store, Truck } from "lucide-react";
+import { Check, CreditCard, ShoppingBag, Store, Truck, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -34,9 +34,10 @@ export const Route = createFileRoute("/shop")({
 });
 
 const FRAMES = [
-  { id: "s", label: "Pequeño", dims: "15x20 cm", price: 24, slots: 1 },
-  { id: "m", label: "Mediano", dims: "20x30 cm", price: 39, slots: 3 },
-  { id: "l", label: "Grande", dims: "30x40 cm", price: 59, slots: 6 },
+  { id: "s", label: "Pequeño", dims: "15x20 cm", price: 24 },
+  { id: "m", label: "Mediano", dims: "20x30 cm", price: 39 },
+  { id: "l", label: "Grande", dims: "30x40 cm", price: 59 },
+  { id: "xl", label: "XL Completo", dims: "40x50 cm", price: 79 },
 ] as const;
 
 type FrameId = (typeof FRAMES)[number]["id"];
@@ -68,6 +69,7 @@ function ShopPage() {
   const [addons, setAddons] = useState<AddonId[]>([]);
   const [delivery, setDelivery] = useState<"home" | "pickup">("home");
   const [paid, setPaid] = useState(false);
+  const [pickerIndex, setPickerIndex] = useState<number | null>(null);
 
   const activeFrame = FRAMES.find((f) => f.id === frame)!;
   const completedSectors = (Object.keys(SECTORS) as SectorId[]).filter((s) => {
@@ -80,10 +82,15 @@ function ShopPage() {
     setAddons((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
 
   const togglePhoto = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+
+  /** Place (or swap) a photo into a specific mockup slot from the picker modal. */
+  const assignSlot = (index: number, id: string) =>
     setSelected((prev) => {
-      if (prev.includes(id)) return prev.filter((p) => p !== id);
-      if (prev.length >= activeFrame.slots) return [...prev.slice(1), id];
-      return [...prev, id];
+      const next = prev.filter((p) => p !== id);
+      if (index >= prev.length) return [...prev, id];
+      next.splice(index, 0, id);
+      return next.filter((p, i) => next.indexOf(p) === i);
     });
 
   const addonTotal = useMemo(
@@ -102,14 +109,22 @@ function ShopPage() {
   const discount = routeComplete ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
   const totalPrice = subtotal - discount + shipping;
 
-  /** Photos shown in the wall mockup: the explicit selection, padded with the newest stamps. */
-  const mockupPhotos = useMemo(() => {
-    const chosen = selected
-      .map((id) => entries.find((e) => e.locationId === id))
-      .filter(Boolean) as typeof entries;
-    const rest = entries.filter((e) => !selected.includes(e.locationId));
-    return [...chosen, ...rest].slice(0, activeFrame.slots);
-  }, [selected, entries, activeFrame.slots]);
+  /** Photos shown in the wall mockup, in the order the explorer picked them. */
+  const mockupPhotos = useMemo(
+    () =>
+      selected
+        .map((id) => entries.find((e) => e.locationId === id))
+        .filter(Boolean) as typeof entries,
+    [selected, entries],
+  );
+
+  const slotCount = Math.max(mockupPhotos.length + 1, 1);
+  const gridClass =
+    mockupPhotos.length <= 1
+      ? "grid-cols-1 w-44"
+      : mockupPhotos.length <= 4
+        ? "grid-cols-2 w-56"
+        : "grid-cols-3 w-60";
 
   return (
     <MobileLayout>
@@ -165,16 +180,13 @@ function ShopPage() {
             <CardDescription>Elige el tamaño y las fotos que irán dentro.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {FRAMES.map((f) => (
                 <button
                   key={f.id}
                   type="button"
                   aria-pressed={frame === f.id}
-                  onClick={() => {
-                    setFrame(f.id);
-                    setSelected((prev) => prev.slice(0, f.slots));
-                  }}
+                  onClick={() => setFrame(f.id)}
                   className={cn(
                     "rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     frame === f.id ? "border-primary bg-primary/5" : "border-border bg-surface",
@@ -189,8 +201,8 @@ function ShopPage() {
 
             <div>
               <Text size="sm" tone="muted" className="mb-2">
-                Selecciona hasta {activeFrame.slots} foto{activeFrame.slots > 1 ? "s" : ""} (
-                {selected.length}/{activeFrame.slots})
+                Selecciona las fotos que quieras ({selected.length} seleccionada
+                {selected.length === 1 ? "" : "s"} de {entries.length})
               </Text>
               {entries.length === 0 ? (
                 <div className="rounded-xl border border-border bg-background p-6 text-center">
@@ -253,30 +265,38 @@ function ShopPage() {
                     <div
                       className={cn(
                         "grid gap-2",
-                        activeFrame.slots === 1 ? "grid-cols-1" : "grid-cols-3",
-                        activeFrame.slots === 1 ? "w-40" : activeFrame.slots === 3 ? "w-56" : "w-60",
+                        gridClass,
                       )}
                     >
-                      {Array.from({ length: activeFrame.slots }).map((_, i) => {
+                      {Array.from({ length: slotCount }).map((_, i) => {
                         const entry = mockupPhotos[i];
                         const location = entry
                           ? LOCATIONS.find((l) => l.id === entry.locationId)
                           : undefined;
                         return entry ? (
-                          <img
+                          <button
                             key={entry.locationId}
-                            src={entry.photo}
-                            alt={`${location?.name ?? ""} en el marco`}
-                            className="aspect-square w-full rounded-[2px] object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
-                          />
-                        ) : (
-                          <div
-                            key={`empty-${i}`}
-                            className="flex aspect-square w-full items-center justify-center rounded-[2px] bg-[#eceae4] text-lg text-text-muted/50"
-                            aria-hidden="true"
+                            type="button"
+                            onClick={() => setPickerIndex(i)}
+                            aria-label={`Cambiar la foto de la posición ${i + 1}`}
+                            className="block w-full overflow-hidden rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
-                            🏔️
-                          </div>
+                            <img
+                              src={entry.photo}
+                              alt={`${location?.name ?? ""} en el marco`}
+                              className="aspect-square w-full object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
+                            />
+                          </button>
+                        ) : (
+                          <button
+                            key={`empty-${i}`}
+                            type="button"
+                            onClick={() => setPickerIndex(i)}
+                            aria-label={`Añadir una foto en la posición ${i + 1}`}
+                            className="flex aspect-square w-full items-center justify-center rounded-[2px] bg-[#eceae4] text-lg text-text-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          >
+                            <span aria-hidden="true">＋</span>
+                          </button>
                         );
                       })}
                     </div>
@@ -294,7 +314,9 @@ function ShopPage() {
                 />
               </div>
               <figcaption className="mt-3 text-center text-[11px] font-semibold text-text-muted">
-                Vista previa en pared · marco {activeFrame.label} ({activeFrame.dims})
+                Vista previa en pared · marco {activeFrame.label} ({activeFrame.dims}) ·{" "}
+                {mockupPhotos.length} foto{mockupPhotos.length === 1 ? "" : "s"} · toca un hueco para
+                cambiarla
               </figcaption>
             </figure>
           </CardContent>
@@ -470,6 +492,80 @@ function ShopPage() {
           </CardContent>
         </Card>
       </div>
+
+      {pickerIndex !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Elegir foto para el marco"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
+        >
+          <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-5 shadow-lg">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <Heading as="h2" level={3}>
+                  Posición {pickerIndex + 1}
+                </Heading>
+                <Text tone="muted" size="sm">
+                  Elige una foto de tu pasaporte para este hueco.
+                </Text>
+              </div>
+              <Button variant="ghost" size="sm" aria-label="Cerrar" onClick={() => setPickerIndex(null)}>
+                <X className="size-5" aria-hidden="true" />
+              </Button>
+            </div>
+
+            {entries.length === 0 ? (
+              <Text size="sm" tone="muted">
+                Aún no tienes fotos. Escanea un QR para sellar tu primer hito.
+              </Text>
+            ) : (
+              <ul className="grid grid-cols-3 gap-2">
+                {entries.map((entry) => {
+                  const location = LOCATIONS.find((l) => l.id === entry.locationId);
+                  const inSlot = mockupPhotos[pickerIndex]?.locationId === entry.locationId;
+                  return (
+                    <li key={entry.locationId}>
+                      <button
+                        type="button"
+                        aria-pressed={inSlot}
+                        onClick={() => {
+                          assignSlot(pickerIndex, entry.locationId);
+                          setPickerIndex(null);
+                        }}
+                        className={cn(
+                          "block w-full overflow-hidden rounded-xl border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                          inSlot ? "border-gold" : "border-border",
+                        )}
+                      >
+                        <img
+                          src={entry.photo}
+                          alt={`Foto de ${location?.name ?? entry.locationId}`}
+                          className="aspect-square w-full object-cover"
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {mockupPhotos[pickerIndex] && (
+              <Button
+                variant="outline"
+                className="mt-4 w-full"
+                onClick={() => {
+                  const id = mockupPhotos[pickerIndex]!.locationId;
+                  setSelected((prev) => prev.filter((p) => p !== id));
+                  setPickerIndex(null);
+                }}
+              >
+                Quitar esta foto del marco
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </MobileLayout>
   );
 }
