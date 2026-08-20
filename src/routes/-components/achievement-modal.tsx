@@ -60,8 +60,13 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
 
         <div className="mt-6 flex flex-col gap-2">
           <Button variant="gold" size="lg" className="w-full" asChild>
-            <Link to="/passport" onClick={onClose} className="inline-flex items-center justify-center gap-2">
-              🎖️ Ver mi vitrina de insignias
+            <Link
+              to="/shop"
+              hash="recompensas-desbloqueadas"
+              onClick={onClose}
+              className="inline-flex items-center justify-center gap-2"
+            >
+              🎁 Reclamar mi Regalo en la Tienda Online
             </Link>
           </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
