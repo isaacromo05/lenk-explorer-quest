@@ -176,18 +176,18 @@ function ShopPage() {
         <Card className={cn(medalFree && "border-gold")}>
           <CardContent className="flex items-start gap-3 py-5">
             <span className="text-3xl" aria-hidden="true">
-              {medalFree ? "🏅" : "🧭"}
+              {routeComplete ? "🏅" : medalFree ? "🎖️" : "🧭"}
             </span>
             <div className="space-y-1">
               {medalFree ? (
                 <>
-                  <Badge variant="gold">
-                    ¡Has completado {completedSectors.length} sector
-                    {completedSectors.length > 1 ? "es" : ""}!
-                  </Badge>
+                  <Badge variant="gold">¡Sector completado!</Badge>
                   <Text size="sm">
-                    Tienes acceso a la {MEDAL_TIER[completedSectors[0]!]}
-                    {completedSectors.length > 1 ? " y más recompensas" : ""}.
+                    ¡Sector completado! Has conseguido la {ROUTE_BADGE[completedSectors[0]!]}
+                    {completedSectors.length > 1
+                      ? ` y ${completedSectors.length - 1} insignia${completedSectors.length > 2 ? "s" : ""} más`
+                      : ""}
+                    . Ya puedes reclamar tu insignia física de ruta.
                   </Text>
                 </>
               ) : (
@@ -196,13 +196,13 @@ function ShopPage() {
                     {scanned}/{total} hitos sellados
                   </Badge>
                   <Text size="sm" tone="muted">
-                    Completa una ruta entera para desbloquear tu medalla física gratuita.
+                    Completa una ruta entera para conseguir su Insignia Oficial de Ruta gratuita.
                   </Text>
                 </>
               )}
-              {scanned === total && (
+              {routeComplete && (
                 <Text size="sm" tone="muted">
-                  Ruta Trans-Simmental completa: Medalla de Oro incluida.
+                  ¡8/8 hitos! Has ganado la Medalla de Oro Trans-Simmental, incluida en tu pedido.
                 </Text>
               )}
             </div>
