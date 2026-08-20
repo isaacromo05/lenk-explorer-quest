@@ -7,6 +7,8 @@ import { SECTORS, type Location } from "@/lib/locations";
 
 interface PhotoCaptureModalProps {
   location: Location;
+  /** "unlock" shows the mascot celebration first; "retake" goes straight to the live camera. */
+  mode?: "unlock" | "retake";
   onClose: () => void;
   onSave: (photo: string) => void;
 }
@@ -49,12 +51,17 @@ function drawOverlay(ctx: CanvasRenderingContext2D, width: number, height: numbe
   );
 }
 
-export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureModalProps) {
+export function PhotoCaptureModal({
+  location,
+  mode = "unlock",
+  onClose,
+  onSave,
+}: PhotoCaptureModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [celebrating, setCelebrating] = useState(mode === "unlock");
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -74,7 +81,9 @@ export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureMod
         await videoRef.current.play().catch(() => undefined);
       }
     } catch {
-      setCameraError("No pudimos abrir la cámara. Sube una foto desde tu galería.");
+      setCameraError(
+        "Necesitamos acceso a la cámara para sellar este hito. Activa el permiso y vuelve a intentarlo.",
+      );
     }
   }, []);
 
@@ -82,6 +91,12 @@ export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureMod
     void startCamera();
     return stopCamera;
   }, [startCamera, stopCamera]);
+
+  useEffect(() => {
+    if (!celebrating) return;
+    const timer = window.setTimeout(() => setCelebrating(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [celebrating]);
 
   const composite = useCallback(
     (source: HTMLVideoElement | HTMLImageElement, w: number, h: number) => {
@@ -110,18 +125,6 @@ export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureMod
     }
   };
 
-  const handleFile = (file: File) => {
-    const img = new Image();
-    img.onload = () => {
-      const data = composite(img, img.naturalWidth, img.naturalHeight);
-      if (data) {
-        setPhoto(data);
-        stopCamera();
-      }
-    };
-    img.src = URL.createObjectURL(file);
-  };
-
   const retake = () => {
     setPhoto(null);
     void startCamera();
@@ -135,16 +138,32 @@ export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureMod
       className="fixed inset-0 z-50 flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
     >
       <div className="w-full max-w-md rounded-2xl bg-surface p-5 shadow-lg">
+        {celebrating && (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <span className="text-6xl" aria-hidden="true">
+              {SECTORS[location.sector].mascotEmoji}
+            </span>
+            <Badge variant="gold">¡Desbloqueado!</Badge>
+            <Heading as="h2" level={3}>
+              ¡{location.name} desbloqueado!
+            </Heading>
+            <Text tone="muted" size="sm">
+              {SECTORS[location.sector].mascot} te acompaña. Abriendo la cámara para tu foto en
+              directo…
+            </Text>
+          </div>
+        )}
+        <div className={cn(celebrating && "hidden")}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <Badge variant="gold" className="mb-2">
-              ¡Desbloqueado!
+              {mode === "retake" ? "Repetir foto" : "¡Desbloqueado!"}
             </Badge>
             <Heading as="h2" level={3}>
-              ¡Lugar Desbloqueado: {location.name}!
+              {mode === "retake" ? location.name : `¡Lugar Desbloqueado: ${location.name}!`}
             </Heading>
             <Text tone="muted" size="sm">
-              Hazte una foto para sellar tu pasaporte.
+              Foto en directo: sella tu pasaporte aquí mismo.
             </Text>
           </div>
           <Button variant="ghost" size="sm" aria-label="Cerrar" onClick={onClose}>
@@ -184,20 +203,6 @@ export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureMod
           )}
         </div>
 
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          capture="user"
-          className="hidden"
-          aria-hidden="true"
-          tabIndex={-1}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(file);
-          }}
-        />
-
         {photo ? (
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={retake}>
@@ -210,15 +215,18 @@ export function PhotoCaptureModal({ location, onClose, onSave }: PhotoCaptureMod
           </div>
         ) : (
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => fileRef.current?.click()}>
-              Subir foto
-            </Button>
+            {cameraError && (
+              <Button variant="outline" className="flex-1" onClick={() => void startCamera()}>
+                Reintentar cámara
+              </Button>
+            )}
             <Button className="flex-1" onClick={capture} disabled={Boolean(cameraError)}>
               <Camera className="size-4" aria-hidden="true" />
               Tomar foto
             </Button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

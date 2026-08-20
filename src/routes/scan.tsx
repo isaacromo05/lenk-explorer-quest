@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Camera, CameraOff, CheckCircle2, ScanLine } from "lucide-react";
+import { Camera, CameraOff, CheckCircle2, Lock, ScanLine } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Heading, Text } from "@/design-system";
@@ -145,7 +145,8 @@ function ScanPage() {
             <CardHeader>
               <CardTitle>Los 8 hitos de Lenk</CardTitle>
               <CardDescription>
-                Modo de pruebas: pulsa un hito para simular su código QR.
+                Bloqueados por defecto 🔒 — en modo de pruebas puedes simular el escaneo de su QR
+                para desbloquearlos.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-3">
@@ -164,10 +165,16 @@ function ScanPage() {
                   >
                     <span className="flex w-full items-center justify-between gap-2">
                       <span aria-hidden="true">{SECTORS[location.sector].mascotEmoji}</span>
-                      {done && <CheckCircle2 className="size-4" aria-hidden="true" />}
+                      {done ? (
+                        <CheckCircle2 className="size-4" aria-hidden="true" />
+                      ) : (
+                        <Lock className="size-4 opacity-60" aria-hidden="true" />
+                      )}
                     </span>
                     <span className="font-semibold">{location.name}</span>
-                    <span className="text-xs font-medium opacity-80">{location.hint}</span>
+                    <span className="text-xs font-medium opacity-80">
+                      {done ? location.hint : `🔒 ${location.hint}`}
+                    </span>
                   </Button>
                 );
               })}
