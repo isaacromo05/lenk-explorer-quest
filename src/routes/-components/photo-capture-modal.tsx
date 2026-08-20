@@ -1,4 +1,4 @@
-import { Camera, RefreshCw, X } from "lucide-react";
+import { Camera, RefreshCw, SwitchCamera, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Badge, Button, Heading, Text } from "@/design-system";
@@ -62,17 +62,20 @@ export function PhotoCaptureModal({
   const [photo, setPhoto] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [celebrating, setCelebrating] = useState(mode === "unlock");
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
   }, []);
 
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (mode: "user" | "environment" = facingMode) => {
     setCameraError(null);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: { facingMode: mode },
         audio: false,
       });
       streamRef.current = stream;
@@ -85,12 +88,19 @@ export function PhotoCaptureModal({
         "Necesitamos acceso a la cámara para sellar este hito. Activa el permiso y vuelve a intentarlo.",
       );
     }
-  }, []);
+  }, [facingMode]);
+
+  const switchCamera = useCallback(() => {
+    const next = facingMode === "user" ? "environment" : "user";
+    setFacingMode(next);
+    void startCamera(next);
+  }, [facingMode, startCamera]);
 
   useEffect(() => {
-    void startCamera();
+    void startCamera(facingMode);
     return stopCamera;
-  }, [startCamera, stopCamera]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!celebrating) return;
@@ -176,7 +186,11 @@ export function PhotoCaptureModal({
             ref={videoRef}
             playsInline
             muted
-            className={cn("size-full object-cover", photo && "hidden")}
+            className={cn(
+              "size-full object-cover",
+              photo && "hidden",
+              facingMode === "user" && "-scale-x-100",
+            )}
           />
           {photo ? (
             <img src={photo} alt={`Tu foto en ${location.name}`} className="size-full object-cover" />
