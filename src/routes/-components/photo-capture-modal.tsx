@@ -67,6 +67,7 @@ export function PhotoCaptureModal({
   const [stage, setStage] = useState<"celebrate" | "camera">(mode === "unlock" ? "celebrate" : "camera");
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [starting, setStarting] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -160,7 +161,7 @@ export function PhotoCaptureModal({
 
   const retake = () => {
     setPhoto(null);
-    void startCamera();
+    setRetryKey((k) => k + 1);
   };
 
   return (
@@ -171,22 +172,32 @@ export function PhotoCaptureModal({
       className="fixed inset-0 z-50 flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
     >
       <div className="w-full max-w-md rounded-2xl bg-surface p-5 shadow-lg">
-        {celebrating && (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
+        {stage === "celebrate" && (
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
             <span className="text-6xl" aria-hidden="true">
               {SECTORS[location.sector].mascotEmoji}
             </span>
-            <Badge variant="gold">¡Desbloqueado!</Badge>
+            <Badge variant="gold">¡Desbloqueado y guardado!</Badge>
             <Heading as="h2" level={3}>
               ¡{location.name} desbloqueado!
             </Heading>
             <Text tone="muted" size="sm">
-              {SECTORS[location.sector].mascot} te acompaña. Abriendo la cámara para tu foto en
-              directo…
+              {SECTORS[location.sector].mascot} te acompaña. Ya está sellado en tu pasaporte: puedes
+              hacer la foto ahora o cuando quieras.
             </Text>
+            <div className="mt-2 flex w-full flex-col gap-3">
+              <Button variant="gold" size="lg" onClick={() => setStage("camera")}>
+                <Camera className="size-4" aria-hidden="true" />
+                Tomar foto ahora
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => (onLater ?? onClose)()}>
+                <Clock className="size-4" aria-hidden="true" />
+                Hacer foto más tarde
+              </Button>
+            </div>
           </div>
         )}
-        <div className={cn(celebrating && "hidden")}>
+        <div className={cn(stage === "celebrate" && "hidden")}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <Badge variant="gold" className="mb-2">
@@ -231,6 +242,13 @@ export function PhotoCaptureModal({
               </div>
             </div>
           )}
+          {starting && !photo && !cameraError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/70 p-6 text-center">
+              <Text tone="muted" size="sm">
+                Activando la cámara…
+              </Text>
+            </div>
+          )}
           {cameraError && !photo && (
             <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
               <Text tone="muted" size="sm">
@@ -253,11 +271,11 @@ export function PhotoCaptureModal({
         ) : (
           <div className="flex gap-3">
             {cameraError && (
-              <Button variant="outline" className="flex-1" onClick={() => void startCamera()}>
+              <Button variant="outline" className="flex-1" onClick={() => setRetryKey((k) => k + 1)}>
                 Reintentar cámara
               </Button>
             )}
-            <Button className="flex-1" onClick={capture} disabled={Boolean(cameraError)}>
+            <Button className="flex-1" onClick={capture} disabled={Boolean(cameraError) || starting}>
               <Camera className="size-4" aria-hidden="true" />
               Tomar foto
             </Button>
@@ -266,6 +284,7 @@ export function PhotoCaptureModal({
               onClick={switchCamera}
               aria-label="Cambiar cámara"
               title="Cambiar cámara"
+              disabled={starting}
             >
               <SwitchCamera className="size-4" aria-hidden="true" />
               Cambiar cámara 🔄
