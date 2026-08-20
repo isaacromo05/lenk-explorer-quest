@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { Check, Lock, ScanLine, X } from "lucide-react";
 
-import { Badge, Button, Heading, Medal, Text } from "@/design-system";
+import { Badge, Button, Heading, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
 import { GUARDIANS } from "@/lib/guardians";
+import { ROUTE_BADGES } from "@/lib/rewards";
 import type { Location, SectorId } from "@/lib/locations";
 
 interface RouteDetailModalProps {
@@ -124,16 +125,29 @@ export function RouteDetailModal({
 
         {completed && (
           <div className="mt-5 flex flex-col items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 p-5 text-center">
-            <Medal label={guardian.badgeName}>{guardian.badgeEmoji}</Medal>
+            <img
+              src={ROUTE_BADGES[sector].image}
+              alt={ROUTE_BADGES[sector].name}
+              width={512}
+              height={512}
+              loading="lazy"
+              className="size-24 object-contain drop-shadow-md"
+            />
             <Heading as="h3" level={4}>
               ¡Ruta completada {progress.current}/{progress.total}!
             </Heading>
             <Text tone="muted" size="sm">
-              Has sellado todos los hitos de esta ruta. Has conseguido su Insignia Oficial de Ruta.
+              Has sellado todos los hitos de esta ruta. Has conseguido su Insignia Oficial de Ruta:
+              recíbela gratis en casa al comprar cualquier producto de la tienda online.
             </Text>
             <Button variant="gold" size="lg" className="w-full" asChild>
-              <Link to="/shop" onClick={onClose} className="inline-flex items-center justify-center gap-2">
-                🎖️ Ir a la Tienda a reclamar insignia
+              <Link
+                to="/shop"
+                hash="recompensas-desbloqueadas"
+                onClick={onClose}
+                className="inline-flex items-center justify-center gap-2"
+              >
+                🎁 Reclamar mi Regalo en la Tienda Online
               </Link>
             </Button>
           </div>

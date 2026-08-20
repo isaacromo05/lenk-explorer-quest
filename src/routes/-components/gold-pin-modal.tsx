@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { QrCode, RotateCcw, X } from "lucide-react";
 import { useState } from "react";
 
@@ -83,13 +84,23 @@ export function GoldPinModal({ onClose }: GoldPinModalProps) {
             <QrCode className="size-5" aria-hidden="true" />
             {credential ? "Ocultar credencial digital" : "Mostrar Credencial Digital"}
           </Button>
+          <Button variant="primary" size="lg" className="w-full" asChild>
+            <Link
+              to="/shop"
+              hash="recompensas-desbloqueadas"
+              onClick={onClose}
+              className="inline-flex items-center justify-center gap-2"
+            >
+              📦 Pedir mi Pin de Colección Online
+            </Link>
+          </Button>
         </div>
 
         {credential && (
           <div className="mt-5 rounded-2xl border border-gold/50 bg-gold/10 p-5 text-center">
             <Text className="font-semibold">Credencial Digital de canje</Text>
             <Text tone="muted" size="sm" className="mb-4">
-              Presenta esta credencial en la Oficina de Turismo de Lenk para recoger tu pin físico.
+              Usa esta credencial en tu pedido online para recibir tu pin físico en casa.
             </Text>
             <div
               className="mx-auto grid size-32 grid-cols-8 gap-px rounded-xl bg-surface p-2"
