@@ -95,16 +95,16 @@ export function RouteDetailModal({
 
         {completed && (
           <div className="mt-5 flex flex-col items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 p-5 text-center">
-            <Medal label={`Medalla ${title}`}>{mascotEmoji}</Medal>
+            <Medal label={`Insignia de la ${title}`}>{mascotEmoji}</Medal>
             <Heading as="h3" level={4}>
               ¡Ruta completada {progress.current}/{progress.total}!
             </Heading>
             <Text tone="muted" size="sm">
-              Has sellado todos los hitos de esta ruta. Tu medalla de sector ya está desbloqueada.
+              Has sellado todos los hitos de esta ruta. Has conseguido su Insignia Oficial de Ruta.
             </Text>
             <Button variant="gold" size="lg" className="w-full" asChild>
               <Link to="/shop" onClick={onClose} className="inline-flex items-center justify-center gap-2">
-                🏅 Ir a la Tienda a reclamar medalla
+                🎖️ Ir a la Tienda a reclamar insignia
               </Link>
             </Button>
           </div>
