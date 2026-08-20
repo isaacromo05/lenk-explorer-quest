@@ -6,9 +6,11 @@ import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@
 import { cn } from "@/design-system/lib/utils";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
+import { GOLD_PIN, ROUTE_BADGES } from "@/lib/rewards";
 import { MobileLayout } from "./-components/mobile-layout";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
 import { PhotoManageModal } from "./-components/photo-manage-modal";
+import { GoldPinModal } from "./-components/gold-pin-modal";
 import { RouteBadgeModal } from "./-components/route-badge-modal";
 
 export const Route = createFileRoute("/passport")({
@@ -34,6 +36,7 @@ function PassportPage() {
   const [retaking, setRetaking] = useState<Location | null>(null);
   const [backupEmail, setBackupEmail] = useState("");
   const [backupSent, setBackupSent] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
   const [routeSector, setRouteSector] = useState<"water" | "summit" | "culture" | null>(null);
   const managingEntry = managing ? state[managing.id] : undefined;
 
@@ -295,6 +298,8 @@ function PassportPage() {
           }}
         />
       )}
+
+      {pinOpen && allDone && <GoldPinModal onClose={() => setPinOpen(false)} />}
 
       {routeSector && (
         <RouteBadgeModal sector={routeSector} state={state} onClose={() => setRouteSector(null)} />
