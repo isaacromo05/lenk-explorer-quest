@@ -55,30 +55,24 @@ function HomePage() {
           <Heading as="h2" level={3}>
             Rutas del valle
           </Heading>
-          <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <RouteCard
               title="Ruta del Agua"
-              places="Simmenfälle, Sibe Brunne, Iffigsee"
-              mascot="Guardián del Agua"
-              mascotEmoji="🌊"
+              places="Simmenfälle, Siebenbrunnen, Iffigsee"
               progress={sectorProgress("water")}
               variant="water"
               unlockedIds={unlockedIds}
             />
             <RouteCard
               title="Ruta de las Cumbres"
-              places="Betelberg, Gryden, Wallbach"
-              mascot="Marmota Exploradora"
-              mascotEmoji="🏔️"
+              places="Betelberg, Gryden, Wallbachschlucht"
               progress={sectorProgress("summit")}
               variant="summit"
               unlockedIds={unlockedIds}
             />
             <RouteCard
-              title="Ruta Tradición & AlpKultur"
+              title="Ruta de la Tradición & AlpKultur"
               places="Lenkerseeli, Metschstand"
-              mascot="Vaca Simmental"
-              mascotEmoji="🐄"
               progress={sectorProgress("culture")}
               variant="culture"
               unlockedIds={unlockedIds}
