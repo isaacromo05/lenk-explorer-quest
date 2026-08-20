@@ -21,7 +21,7 @@ export interface Guardian {
 
 export const GUARDIANS: Record<SectorId, Guardian> = {
   water: {
-    image: guardianWater,
+    image: GUARDIAN_IMAGES.water,
     name: "Guardián del Agua",
     badgeEmoji: "🌊",
     badgeName: "Insignia de la Ruta del Agua",
@@ -29,7 +29,7 @@ export const GUARDIANS: Record<SectorId, Guardian> = {
       "Nacido de la primera gota de deshielo del glaciar del Wildstrubel, el Guardián del Agua vigila las cascadas del Simme. Dicen que cada salto de agua guarda una de sus risas, y que solo quienes visitan sus tres fuentes escuchan la melodía completa del valle.",
   },
   summit: {
-    image: guardianSummit,
+    image: GUARDIAN_IMAGES.summit,
     name: "Guardián Íbice de Cumbres",
     badgeEmoji: "🏔️",
     badgeName: "Insignia de Cumbres",
@@ -37,7 +37,7 @@ export const GUARDIANS: Record<SectorId, Guardian> = {
       "El Íbice de Cumbres salta entre riscos desde antes de que existieran los senderos. Conoce cada cornisa del Betelberg y solo muestra el panorama secreto del Simmental a los exploradores que alcanzan sus tres miradores.",
   },
   culture: {
-    image: guardianCulture,
+    image: GUARDIAN_IMAGES.culture,
     name: "Guardián Queso Berner Alpkäse",
     badgeEmoji: "🧀",
     badgeName: "Insignia de Tradición",
