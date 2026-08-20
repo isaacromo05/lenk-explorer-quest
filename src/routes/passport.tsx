@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Lock, ScanLine } from "lucide-react";
+import { useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Medal, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
-import { LOCATIONS, SECTORS } from "@/lib/locations";
+import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
+import { PhotoCaptureModal } from "./-components/photo-capture-modal";
+import { PhotoManageModal } from "./-components/photo-manage-modal";
 
 export const Route = createFileRoute("/passport")({
   head: () => ({
@@ -24,8 +27,11 @@ export const Route = createFileRoute("/passport")({
 const dateFormatter = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short", year: "numeric" });
 
 function PassportPage() {
-  const { state, scanned, total, hydrated, sectorProgress } = usePassport();
+  const { state, scanned, total, hydrated, sectorProgress, unlock, remove } = usePassport();
   const allDone = hydrated && scanned === total;
+  const [managing, setManaging] = useState<Location | null>(null);
+  const [retaking, setRetaking] = useState<Location | null>(null);
+  const managingEntry = managing ? state[managing.id] : undefined;
 
   return (
     <MobileLayout>
@@ -87,12 +93,19 @@ function PassportPage() {
               return (
                 <Card key={location.id} className="overflow-hidden">
                   {entry ? (
-                    <img
-                      src={entry.photo}
-                      alt={`Tu foto en ${location.name}`}
-                      className="aspect-square w-full object-cover"
-                      loading="lazy"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setManaging(location)}
+                      aria-label={`Gestionar tu foto de ${location.name}`}
+                      className="block w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                    >
+                      <img
+                        src={entry.photo}
+                        alt={`Tu foto en ${location.name}`}
+                        className="aspect-square w-full object-cover"
+                        loading="lazy"
+                      />
+                    </button>
                   ) : (
                     <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 bg-background">
                       <span className="text-4xl opacity-30 grayscale" aria-hidden="true">
@@ -130,6 +143,35 @@ function PassportPage() {
           </Link>
         </Button>
       </div>
+
+      {managing && managingEntry && (
+        <PhotoManageModal
+          location={managing}
+          photo={managingEntry.photo}
+          unlockedAtLabel={dateFormatter.format(new Date(managingEntry.unlockedAt))}
+          onClose={() => setManaging(null)}
+          onRetake={() => {
+            setRetaking(managing);
+            setManaging(null);
+          }}
+          onDelete={() => {
+            remove(managing.id);
+            setManaging(null);
+          }}
+        />
+      )}
+
+      {retaking && state[retaking.id] && (
+        <PhotoCaptureModal
+          location={retaking}
+          mode="retake"
+          onClose={() => setRetaking(null)}
+          onSave={(photo) => {
+            unlock(retaking.id, photo);
+            setRetaking(null);
+          }}
+        />
+      )}
     </MobileLayout>
   );
 }
