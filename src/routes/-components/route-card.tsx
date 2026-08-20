@@ -30,9 +30,12 @@ const variantConfig = {
 
 export function RouteCard({ title, places, mascot, mascotEmoji, progress, variant }: RouteCardProps) {
   const cfg = variantConfig[variant];
+  const pct = progress.total ? Math.round((progress.current / progress.total) * 100) : 0;
   return (
     <Card className="overflow-hidden">
-      <div className={cn("h-2 w-full", cfg.bar)} aria-hidden="true" />
+      <div className="h-2 w-full bg-border" aria-hidden="true">
+        <div className={cn("h-full transition-all", cfg.bar)} style={{ width: `${pct}%` }} />
+      </div>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <CardTitle>{title}</CardTitle>

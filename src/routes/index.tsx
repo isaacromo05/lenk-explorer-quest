@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine } from "lucide-react";
 
 import { Badge, Button, Card, CardContent, Heading, Text } from "@/design-system";
+import { LOCATIONS, SECTORS } from "@/lib/locations";
+import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
 import { RouteCard } from "./-components/route-card";
 
@@ -20,6 +22,8 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const { entries, scanned, sectorProgress, hydrated } = usePassport();
+  const recent = [...entries].sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt)).slice(0, 3);
   return (
     <MobileLayout>
       <div className="space-y-8">
@@ -34,12 +38,14 @@ function HomePage() {
             Descubre las Leyendas de Lenk
           </Heading>
           <Text tone="inverse" className="mb-6 opacity-90">
-            Completa los 8 hitos, colecciona tus fotos y consigue la Medalla de Oro Alpina.
+            {hydrated && scanned > 0
+              ? `Llevas ${scanned} de 8 hitos sellados. ¡Sigue explorando el valle!`
+              : "Completa los 8 hitos, colecciona tus fotos y consigue la Medalla de Oro Alpina."}
           </Text>
           <Button variant="gold" size="lg" asChild>
             <Link to="/scan" className="inline-flex items-center gap-2">
               <ScanLine className="size-5" aria-hidden="true" />
-              Escanear mi primer QR
+              {hydrated && scanned > 0 ? "Escanear siguiente QR" : "Escanear mi primer QR"}
             </Link>
           </Button>
         </section>
@@ -54,7 +60,7 @@ function HomePage() {
               places="Simmenfälle, Sibe Brunne, Iffigfall"
               mascot="Guardián del Agua"
               mascotEmoji="🌊"
-              progress={{ current: 0, total: 3 }}
+              progress={sectorProgress("water")}
               variant="water"
             />
             <RouteCard
@@ -62,7 +68,7 @@ function HomePage() {
               places="Betelberg, Gryden, Wallbach"
               mascot="Marmota Exploradora"
               mascotEmoji="🏔️"
-              progress={{ current: 0, total: 3 }}
+              progress={sectorProgress("summit")}
               variant="summit"
             />
             <RouteCard
@@ -70,26 +76,56 @@ function HomePage() {
               places="Lenkerseeli, Metschstand"
               mascot="Vaca Simmental"
               mascotEmoji="🐄"
-              progress={{ current: 0, total: 2 }}
+              progress={sectorProgress("culture")}
               variant="culture"
             />
           </div>
         </section>
 
-        <section>
-          <Card className="py-10">
-            <CardContent className="text-center">
-              <div className="mb-3 text-4xl" aria-hidden="true">
-                🔭
-              </div>
-              <Heading as="h3" level={4}>
-                Aún no has escaneado ningún punto
-              </Heading>
-              <Text tone="muted" size="sm">
-                ¡Visita el primer lugar emblemático en Lenk y escanea tu primer QR para empezar tu colección!
-              </Text>
-            </CardContent>
-          </Card>
+        <section className="space-y-4">
+          <Heading as="h2" level={3}>
+            Desbloqueos recientes
+          </Heading>
+          {recent.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3">
+              {recent.map((entry) => {
+                const location = LOCATIONS.find((l) => l.id === entry.locationId);
+                if (!location) return null;
+                return (
+                  <Card key={entry.locationId} className="overflow-hidden">
+                    <img
+                      src={entry.photo}
+                      alt={`Foto de ${location.name}`}
+                      className="aspect-square w-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="p-2">
+                      <Text size="sm" className="truncate font-semibold">
+                        {location.name}
+                      </Text>
+                      <Text tone="muted" size="sm" className="truncate text-xs">
+                        {SECTORS[location.sector].mascotEmoji} {SECTORS[location.sector].name}
+                      </Text>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="py-10">
+              <CardContent className="text-center">
+                <div className="mb-3 text-4xl" aria-hidden="true">
+                  🔭
+                </div>
+                <Heading as="h3" level={4}>
+                  Aún no has escaneado ningún punto
+                </Heading>
+                <Text tone="muted" size="sm">
+                  ¡Visita el primer lugar emblemático en Lenk y escanea tu primer QR para empezar tu colección!
+                </Text>
+              </CardContent>
+            </Card>
+          )}
         </section>
       </div>
     </MobileLayout>
