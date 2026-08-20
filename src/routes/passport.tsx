@@ -9,6 +9,7 @@ import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
 import { PhotoManageModal } from "./-components/photo-manage-modal";
+import { RouteBadgeModal } from "./-components/route-badge-modal";
 
 export const Route = createFileRoute("/passport")({
   head: () => ({
@@ -33,6 +34,7 @@ function PassportPage() {
   const [retaking, setRetaking] = useState<Location | null>(null);
   const [backupEmail, setBackupEmail] = useState("");
   const [backupSent, setBackupSent] = useState(false);
+  const [routeSector, setRouteSector] = useState<"water" | "summit" | "culture" | null>(null);
   const managingEntry = managing ? state[managing.id] : undefined;
 
   return (
@@ -99,19 +101,26 @@ function PassportPage() {
             const progress = sectorProgress(sector);
             const complete = hydrated && progress.current === progress.total;
             return (
-              <Card key={sector} className="p-4">
-                <Medal
-                  label={SECTORS[sector].mascot}
-                  locked={!complete}
-                  className={cn(!complete && "opacity-70")}
+              <Card key={sector} className="p-0">
+                <button
+                  type="button"
+                  onClick={() => setRouteSector(sector)}
+                  aria-label={`Ver detalles de la ${SECTORS[sector].name}`}
+                  className="flex w-full flex-col items-center rounded-2xl p-4 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
-                  <span className={cn(!complete && "grayscale")} aria-hidden="true">
-                    {SECTORS[sector].mascotEmoji}
-                  </span>
-                </Medal>
-                <Text tone="muted" size="sm" className="mt-2 text-center text-xs">
-                  {progress.current}/{progress.total}
-                </Text>
+                  <Medal
+                    label={SECTORS[sector].mascot}
+                    locked={!complete}
+                    className={cn(!complete && "opacity-70")}
+                  >
+                    <span className={cn(!complete && "grayscale")} aria-hidden="true">
+                      {SECTORS[sector].mascotEmoji}
+                    </span>
+                  </Medal>
+                  <Text tone="muted" size="sm" className="mt-2 text-center text-xs">
+                    {progress.current}/{progress.total}
+                  </Text>
+                </button>
               </Card>
             );
           })}
@@ -120,10 +129,10 @@ function PassportPage() {
         {allDone && (
           <Card className="shadow-md">
             <CardContent className="flex items-center gap-4">
-              <Medal label="Medalla de Oro Alpina">🏅</Medal>
+              <Medal label="Medalla de Oro Trans-Simmental">🏅</Medal>
               <Text size="sm">
-                ¡Has completado los 8 hitos del valle de Lenk! Canjea tu Medalla de Oro Alpina en la
-                tienda.
+                ¡Has completado los 8 hitos del valle de Lenk! Canjea tu Medalla de Oro
+                Trans-Simmental en la tienda.
               </Text>
             </CardContent>
           </Card>
@@ -231,6 +240,10 @@ function PassportPage() {
             setRetaking(null);
           }}
         />
+      )}
+
+      {routeSector && (
+        <RouteBadgeModal sector={routeSector} state={state} onClose={() => setRouteSector(null)} />
       )}
     </MobileLayout>
   );
