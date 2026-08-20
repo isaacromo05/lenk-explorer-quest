@@ -27,7 +27,7 @@ export const Route = createFileRoute("/passport")({
 const dateFormatter = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short", year: "numeric" });
 
 function PassportPage() {
-  const { state, scanned, total, hydrated, sectorProgress, setPhoto, remove } = usePassport();
+  const { state, scanned, total, hydrated, sectorProgress, setPhoto } = usePassport();
   const allDone = hydrated && scanned === total;
   const [managing, setManaging] = useState<Location | null>(null);
   const [retaking, setRetaking] = useState<Location | null>(null);
