@@ -1,203 +1,97 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ScanLine } from "lucide-react";
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Heading,
-  Input,
-  Medal,
-  Text,
-} from "@/design-system";
+import { Badge, Button, Card, CardContent, Heading, Text } from "@/design-system";
+import { MobileLayout } from "./-components/mobile-layout";
+import { RouteCard } from "./-components/route-card";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lenk Explorer Quest — Design System Showcase" },
-      {
-        name: "description",
-        content:
-          "Colors, typography, and components of the Lenk Explorer Quest alpine design system.",
-      },
-      { property: "og:title", content: "Lenk Explorer Quest — Design System Showcase" },
-      {
-        property: "og:description",
-        content: "Alpine tokens, pill badges, gold reward medals, and rounded surfaces.",
-      },
+      { title: "Lenk Quest — Inicio" },
+      { name: "description", content: "Descubre las leyendas de Lenk y completa los 8 hitos." },
+      { property: "og:title", content: "Lenk Quest — Inicio" },
+      { property: "og:description", content: "Descubre las leyendas de Lenk y completa los 8 hitos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Showcase,
+  component: HomePage,
 });
 
-const swatches = [
-  { name: "Primary", token: "bg-primary", hint: "Headers, primary buttons, navbar" },
-  { name: "Secondary", token: "bg-secondary", hint: "Trail badges, success, nature" },
-  { name: "Gold", token: "bg-gold", hint: "Unlocked medals & rewards only" },
-  { name: "Background", token: "bg-background", hint: "Page canvas" },
-  { name: "Surface", token: "bg-surface", hint: "Cards & modals" },
-  { name: "Text", token: "bg-text", hint: "Primary copy" },
-];
-
-const sectors = ["Water", "Summit", "Culture"] as const;
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function HomePage() {
   return (
-    <section className="space-y-4">
-      <Heading as="h2" level={3}>
-        {title}
-      </Heading>
-      {children}
-    </section>
-  );
-}
-
-function Showcase() {
-  return (
-    <main className="min-h-screen bg-background">
-      <header className="bg-primary px-6 py-10 text-primary-foreground sm:px-10">
-        <div className="mx-auto max-w-5xl space-y-3">
-          <Badge variant="gold">Design System</Badge>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Lenk Explorer Quest
-          </h1>
-          <Text tone="inverse" className="max-w-xl opacity-90">
-            Alpine blues, forest greens, and gold reserved for earned rewards — built for
-            readability on the trail.
+    <MobileLayout>
+      <div className="space-y-8">
+        <section className="rounded-2xl bg-primary p-6 text-primary-foreground shadow-sm">
+          <Badge
+            variant="outline"
+            className="mb-3 border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground"
+          >
+            Aventura alpina
+          </Badge>
+          <Heading as="h1" level={2} className="text-primary-foreground">
+            Descubre las Leyendas de Lenk
+          </Heading>
+          <Text tone="inverse" className="mb-6 opacity-90">
+            Completa los 8 hitos, colecciona tus fotos y consigue la Medalla de Oro Alpina.
           </Text>
-        </div>
-      </header>
+          <Button variant="gold" size="lg" asChild>
+            <Link to="/scan" className="inline-flex items-center gap-2">
+              <ScanLine className="size-5" aria-hidden="true" />
+              Escanear mi primer QR
+            </Link>
+          </Button>
+        </section>
 
-      <div className="mx-auto max-w-5xl space-y-12 px-6 py-12 sm:px-10">
-        <Section title="Color tokens">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {swatches.map((s) => (
-              <Card key={s.name} className="overflow-hidden">
-                <div className={`h-20 w-full ${s.token}`} />
-                <CardContent className="pt-4">
-                  <p className="font-display font-bold text-primary">{s.name}</p>
-                  <Text tone="muted" size="sm">
-                    {s.hint}
-                  </Text>
-                </CardContent>
-              </Card>
-            ))}
+        <section className="space-y-4">
+          <Heading as="h2" level={3}>
+            Rutas del valle
+          </Heading>
+          <div className="grid gap-4">
+            <RouteCard
+              title="Ruta del Agua"
+              places="Simmenfälle, Sibe Brunne, Iffigfall"
+              mascot="Guardián del Agua"
+              mascotEmoji="🌊"
+              progress={{ current: 0, total: 3 }}
+              variant="water"
+            />
+            <RouteCard
+              title="Ruta de las Cumbres"
+              places="Betelberg, Gryden, Wallbach"
+              mascot="Marmota Exploradora"
+              mascotEmoji="🏔️"
+              progress={{ current: 0, total: 3 }}
+              variant="summit"
+            />
+            <RouteCard
+              title="Ruta Tradición & AlpKultur"
+              places="Lenkerseeli, Metschstand"
+              mascot="Vaca Simmental"
+              mascotEmoji="🐄"
+              progress={{ current: 0, total: 2 }}
+              variant="culture"
+            />
           </div>
-        </Section>
+        </section>
 
-        <Section title="Typography">
-          <Card>
-            <CardContent className="space-y-3 pt-6">
-              <Heading as="h3" level={1}>
-                Summit the Wildstrubel
+        <section>
+          <Card className="py-10">
+            <CardContent className="text-center">
+              <div className="mb-3 text-4xl" aria-hidden="true">
+                🔭
+              </div>
+              <Heading as="h3" level={4}>
+                Aún no has escaneado ningún punto
               </Heading>
-              <Heading as="h4" level={2}>
-                Trail heading, bold and modern
-              </Heading>
-              <Text>
-                Body copy uses Plus Jakarta Sans with relaxed line-height so route notes stay
-                readable in bright sunlight.
-              </Text>
               <Text tone="muted" size="sm">
-                Muted supporting text for metadata and hints.
+                ¡Visita el primer lugar emblemático en Lenk y escanea tu primer QR para empezar tu colección!
               </Text>
             </CardContent>
           </Card>
-        </Section>
-
-        <Section title="Buttons">
-          <Card>
-            <CardContent className="flex flex-wrap items-center gap-3 pt-6">
-              <Button>Start quest</Button>
-              <Button variant="secondary">Mark complete</Button>
-              <Button variant="gold">Claim reward</Button>
-              <Button variant="outline">Details</Button>
-              <Button variant="ghost">Skip</Button>
-              <Button size="sm">Small</Button>
-              <Button size="lg">Large</Button>
-              <Button disabled>Disabled</Button>
-            </CardContent>
-          </Card>
-        </Section>
-
-        <Section title="Badges">
-          <Card>
-            <CardContent className="flex flex-wrap items-center gap-3 pt-6">
-              {sectors.map((s) => (
-                <Badge key={s} variant="trail" size="md">
-                  {s}
-                </Badge>
-              ))}
-              <Badge variant="primary">Level 4</Badge>
-              <Badge variant="gold">Premium</Badge>
-              <Badge variant="outline">Draft</Badge>
-              <Badge>Neutral</Badge>
-            </CardContent>
-          </Card>
-        </Section>
-
-        <Section title="Medals">
-          <Card>
-            <CardContent className="flex flex-wrap gap-8 pt-6">
-              <Medal label="Summit Master" />
-              <Medal label="Lake Walker" />
-              <Medal label="Culture Trail" locked />
-            </CardContent>
-          </Card>
-        </Section>
-
-        <Section title="Cards & forms">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle>Simmefälle Trail</CardTitle>
-                  <Badge variant="trail">Water</Badge>
-                </div>
-                <CardDescription>
-                  4.2 km along the gorge, with three checkpoints and a waterfall viewpoint.
-                </CardDescription>
-              </CardHeader>
-              <CardFooter>
-                <Button size="sm">Start quest</Button>
-                <Button size="sm" variant="outline">
-                  Route map
-                </Button>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Join the quest</CardTitle>
-                <CardDescription>Explorer name and code from your trail pass.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1.5">
-                  <label htmlFor="explorer" className="text-sm font-semibold text-text">
-                    Explorer name
-                  </label>
-                  <Input id="explorer" placeholder="Anna from Lenk" />
-                </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="code" className="text-sm font-semibold text-text">
-                    Quest code
-                  </label>
-                  <Input id="code" placeholder="LENK-2026" />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="secondary" size="sm">
-                  Join
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </Section>
+        </section>
       </div>
-    </main>
+    </MobileLayout>
   );
 }
