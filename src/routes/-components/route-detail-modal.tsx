@@ -1,6 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { Check, Lock, X } from "lucide-react";
 
-import { Badge, Button, Heading, Text } from "@/design-system";
+import { Badge, Button, Heading, Medal, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
 import type { Location } from "@/lib/locations";
 
@@ -27,6 +28,7 @@ export function RouteDetailModal({
   onClose,
 }: RouteDetailModalProps) {
   const pct = progress.total ? Math.round((progress.current / progress.total) * 100) : 0;
+  const completed = progress.total > 0 && progress.current >= progress.total;
   return (
     <div
       role="dialog"
@@ -34,7 +36,7 @@ export function RouteDetailModal({
       aria-label={`Ruta: ${title}`}
       className="fixed inset-0 z-[100] flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
     >
-      <div className="w-full max-w-md rounded-2xl bg-surface p-5 shadow-lg">
+      <div className="max-h-[85vh] w-full max-w-md overflow-y-auto overscroll-contain scroll-smooth rounded-2xl bg-surface p-5 pb-12 shadow-lg">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <Heading as="h2" level={3}>
@@ -90,6 +92,23 @@ export function RouteDetailModal({
             );
           })}
         </ul>
+
+        {completed && (
+          <div className="mt-5 flex flex-col items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 p-5 text-center">
+            <Medal label={`Medalla ${title}`}>{mascotEmoji}</Medal>
+            <Heading as="h3" level={4}>
+              ¡Ruta completada {progress.current}/{progress.total}!
+            </Heading>
+            <Text tone="muted" size="sm">
+              Has sellado todos los hitos de esta ruta. Tu medalla de sector ya está desbloqueada.
+            </Text>
+            <Button variant="gold" size="lg" className="w-full" asChild>
+              <Link to="/shop" onClick={onClose} className="inline-flex items-center justify-center gap-2">
+                🏅 Ir a la Tienda a reclamar medalla
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
