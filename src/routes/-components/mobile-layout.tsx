@@ -30,9 +30,9 @@ export function MobileLayout({ children }: MobileLayoutProps) {
         </Badge>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-6 pb-24">{children}</main>
+      <main className="flex-1 px-4 py-6 pb-28">{children}</main>
 
-      <nav className="shrink-0 border-t border-border bg-surface px-2 pt-2 shadow-sm">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-surface px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-md">
         <ul className="flex items-end justify-around">
           <NavItem to="/" icon={Home} label="Inicio" />
           <NavItem to="/passport" icon={BookOpenText} label="Mi Pasaporte" />

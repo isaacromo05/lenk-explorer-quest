@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, Lock, ScanLine } from "lucide-react";
+import { Camera, Lock, Mail, ScanLine } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Card, CardContent, Heading, Medal, Text } from "@/design-system";
+import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
@@ -31,6 +31,8 @@ function PassportPage() {
   const allDone = hydrated && scanned === total;
   const [managing, setManaging] = useState<Location | null>(null);
   const [retaking, setRetaking] = useState<Location | null>(null);
+  const [backupEmail, setBackupEmail] = useState("");
+  const [backupSent, setBackupSent] = useState(false);
   const managingEntry = managing ? state[managing.id] : undefined;
 
   return (
@@ -46,6 +48,51 @@ function PassportPage() {
               : "Aquí aparecerán tus fotos y sellos de los hitos escaneados."}
           </Text>
         </section>
+
+        <Card className="border-gold/50">
+          <CardContent className="space-y-3 py-5">
+            <Text className="font-semibold">
+              <span aria-hidden="true">✉️</span> ¿Quieres guardar tu progreso?
+            </Text>
+            <Text tone="muted" size="sm">
+              Introduce tu email para enviar un enlace de respaldo.
+            </Text>
+            <form
+              className="flex flex-col gap-2 sm:flex-row"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setBackupSent(true);
+              }}
+            >
+              <label htmlFor="backup-email" className="sr-only">
+                Email para el respaldo
+              </label>
+              <Input
+                id="backup-email"
+                type="email"
+                required
+                maxLength={255}
+                autoComplete="email"
+                placeholder="tu@email.com"
+                value={backupEmail}
+                onChange={(e) => {
+                  setBackupEmail(e.target.value);
+                  setBackupSent(false);
+                }}
+                className="flex-1"
+              />
+              <Button type="submit" variant="gold">
+                <Mail className="size-4" aria-hidden="true" />
+                Enviar enlace
+              </Button>
+            </form>
+            {backupSent && (
+              <Text tone="muted" size="sm">
+                Enlace de respaldo enviado a {backupEmail}.
+              </Text>
+            )}
+          </CardContent>
+        </Card>
 
         <section className="grid grid-cols-3 gap-3">
           {(["water", "summit", "culture"] as const).map((sector) => {

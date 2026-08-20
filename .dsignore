@@ -1,1 +1,5 @@
 src/design-system/showcase/**
+src/lib/**
+src/router.tsx
+src/routeTree.gen.ts
+src/mockup-preview.d.ts

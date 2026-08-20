@@ -136,15 +136,18 @@ export function PhotoCaptureModal({
     (source: HTMLVideoElement | HTMLImageElement, w: number, h: number) => {
       const canvas = document.createElement("canvas");
       const size = Math.min(w, h);
-      canvas.width = 1080;
-      canvas.height = 1080;
+      // Compress to WebP, capped at 1920px on the long edge, to keep LocalStorage light.
+      const target = Math.min(1920, Math.max(720, size));
+      canvas.width = target;
+      canvas.height = target;
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
       const sx = (w - size) / 2;
       const sy = (h - size) / 2;
       ctx.drawImage(source, sx, sy, size, size, 0, 0, canvas.width, canvas.height);
       drawOverlay(ctx, canvas.width, canvas.height, location);
-      return canvas.toDataURL("image/jpeg", 0.85);
+      const webp = canvas.toDataURL("image/webp", 0.85);
+      return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.85);
     },
     [location],
   );
