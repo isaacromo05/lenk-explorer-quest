@@ -238,6 +238,15 @@ export function PhotoCaptureModal({
               <Camera className="size-4" aria-hidden="true" />
               Tomar foto
             </Button>
+            <Button
+              variant="outline"
+              onClick={switchCamera}
+              aria-label="Cambiar cámara"
+              title="Cambiar cámara"
+            >
+              <SwitchCamera className="size-4" aria-hidden="true" />
+              Cambiar cámara 🔄
+            </Button>
           </div>
         )}
         </div>
