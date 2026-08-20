@@ -22,11 +22,11 @@ export const SECTORS: Record<SectorId, Sector> = {
 
 export const LOCATIONS: Location[] = [
   { id: "simmenfalle", name: "Simmenfälle", sector: "water", hint: "Cascadas del Simme" },
-  { id: "sibe-brunne", name: "Sibe Brunne", sector: "water", hint: "Las siete fuentes" },
+  { id: "sibe-brunne", name: "Siebenbrunnen", sector: "water", hint: "Las siete fuentes" },
   { id: "iffigsee", name: "Iffigsee", sector: "water", hint: "El lago del Iffig" },
   { id: "betelberg", name: "Betelberg", sector: "summit", hint: "Mirador panorámico" },
   { id: "gryden", name: "Gryden", sector: "summit", hint: "Prados alpinos" },
-  { id: "wallbach", name: "Wallbach", sector: "summit", hint: "Sendero del arroyo" },
+  { id: "wallbach", name: "Wallbachschlucht", sector: "summit", hint: "Sendero del arroyo" },
   { id: "lenkerseeli", name: "Lenkerseeli", sector: "culture", hint: "El lago del pueblo" },
   { id: "metschstand", name: "Metschstand", sector: "culture", hint: "Tradición AlpKultur" },
 ];
