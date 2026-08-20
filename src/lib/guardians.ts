@@ -1,4 +1,4 @@
-import figura3dPreview from "@/assets/figura-3d-preview.glb.asset.json";
+import figura3dPreview from "@/assets/figura-3d-textura-preview.glb.asset.json";
 
 import type { SectorId } from "./locations";
 
