@@ -40,6 +40,7 @@ const variantConfig = {
 export function RouteCard({ title, places, progress, variant, unlockedIds = [] }: RouteCardProps) {
   const cfg = variantConfig[variant];
   const guardian = GUARDIANS[variant];
+  const routeBadge = ROUTE_BADGES[variant];
   const pct = progress.total ? Math.round((progress.current / progress.total) * 100) : 0;
   const earned = progress.total > 0 && progress.current >= progress.total;
   const [open, setOpen] = useState(false);
