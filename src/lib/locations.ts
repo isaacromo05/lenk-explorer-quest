@@ -16,8 +16,8 @@ export interface Location {
 
 export const SECTORS: Record<SectorId, Sector> = {
   water: { id: "water", name: "Ruta del Agua", mascot: "Guardián del Agua", mascotEmoji: "🌊" },
-  summit: { id: "summit", name: "Ruta de las Cumbres", mascot: "Marmota Exploradora", mascotEmoji: "🏔️" },
-  culture: { id: "culture", name: "Ruta Tradición & AlpKultur", mascot: "Vaca Simmental", mascotEmoji: "🐄" },
+  summit: { id: "summit", name: "Ruta de las Cumbres", mascot: "Guardián Íbice de Cumbres", mascotEmoji: "🏔️" },
+  culture: { id: "culture", name: "Ruta de la Tradición & AlpKultur", mascot: "Guardián Queso Berner Alpkäse", mascotEmoji: "🧀" },
 };
 
 export const LOCATIONS: Location[] = [
