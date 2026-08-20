@@ -181,41 +181,91 @@ function ShopPage() {
           </Text>
         </div>
 
-        <Card className={cn(medalFree && "border-gold")}>
-          <CardContent className="flex items-start gap-3 py-5">
-            <span className="text-3xl" aria-hidden="true">
-              {routeComplete ? "🏅" : medalFree ? "🎖️" : "🧭"}
-            </span>
-            <div className="space-y-1">
-              {medalFree ? (
-                <>
-                  <Badge variant="gold">¡Sector completado!</Badge>
-                  <Text size="sm">
-                    ¡Sector completado! Has conseguido la {ROUTE_BADGE[completedSectors[0]!]}
-                    {completedSectors.length > 1
-                      ? ` y ${completedSectors.length - 1} insignia${completedSectors.length > 2 ? "s" : ""} más`
-                      : ""}
-                    . Ya puedes reclamar tu insignia física de ruta.
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Badge variant="outline">
-                    {scanned}/{total} hitos sellados
-                  </Badge>
-                  <Text size="sm" tone="muted">
-                    Completa una ruta entera para conseguir su Insignia Oficial de Ruta gratuita.
-                  </Text>
-                </>
-              )}
-              {routeComplete && (
-                <Text size="sm" tone="muted">
-                  ¡8/8 hitos! Has ganado la Medalla de Oro Trans-Simmental, incluida en tu pedido.
+        <section id="recompensas-desbloqueadas" ref={rewardsRef} className="scroll-mt-20 space-y-3">
+          <Heading as="h2" level={3}>
+            Tus recompensas desbloqueadas (regalo online)
+          </Heading>
+          <Text tone="muted" size="sm">
+            Consigue tu insignia física gratis en casa al comprar cualquier producto de nuestra tienda
+            online.
+          </Text>
+
+          <div className="grid gap-3">
+            {(Object.keys(SECTORS) as SectorId[]).map((sector) => {
+              const progress = sectorProgress(sector);
+              const unlocked = completedSectors.includes(sector);
+              const badge = ROUTE_BADGES[sector];
+              const inCart = giftSectors.includes(sector);
+              return (
+                <Card key={sector} className={cn(unlocked ? "border-gold shadow-md" : "opacity-70")}>
+                  <CardContent className="flex items-center gap-4 py-5">
+                    <span
+                      className={cn(
+                        "relative flex size-20 shrink-0 items-center justify-center rounded-full",
+                        unlocked ? "bg-gold/15" : "bg-background",
+                      )}
+                    >
+                      <img
+                        src={badge.image}
+                        alt={unlocked ? badge.name : `${badge.name} bloqueada`}
+                        width={512}
+                        height={512}
+                        loading="lazy"
+                        className={cn("size-16 object-contain", unlocked ? "drop-shadow-md" : "opacity-30 grayscale")}
+                      />
+                      {!unlocked && (
+                        <Lock className="absolute size-6 text-text-muted" aria-hidden="true" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <Text size="sm" className="font-semibold">
+                        {badge.shortName}
+                      </Text>
+                      {unlocked ? (
+                        <>
+                          <Badge variant="gold">🎁 Regalo gratis desbloqueado (0,00 €)</Badge>
+                          <Text tone="muted" size="sm" className="text-xs">
+                            {GUARDIANS[sector].name} · {progress.current}/{progress.total} hitos
+                          </Text>
+                          <Button
+                            variant={inCart ? "outline" : "gold"}
+                            size="sm"
+                            className="mt-1 w-full"
+                            aria-pressed={inCart}
+                            onClick={() => toggleGift(sector)}
+                          >
+                            <Gift className="size-4" aria-hidden="true" />
+                            {inCart ? "Regalo añadido al carrito" : "Añadir Regalo al Carrito"}
+                          </Button>
+                        </>
+                      ) : (
+                        <Text tone="muted" size="sm" className="text-xs">
+                          Completa los hitos de esta ruta para desbloquear tu regalo en la tienda (
+                          {progress.current}/{progress.total}).
+                        </Text>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {routeComplete && (
+            <Card className="border-gold">
+              <CardContent className="flex items-center gap-3 py-4">
+                <span className="text-2xl" aria-hidden="true">
+                  🏅
+                </span>
+                <Text size="sm">
+                  ¡8/8 hitos! Has ganado el Pin Supremo Lenk Gold / Imperial Edition, incluido en tu
+                  pedido online.
                 </Text>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
 
         <Card>
           <CardHeader>
