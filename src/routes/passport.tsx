@@ -6,6 +6,8 @@ import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@
 import { cn } from "@/design-system/lib/utils";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
+import { GUARDIANS } from "@/lib/guardians";
+
 import { GOLD_PIN, ROUTE_BADGES } from "@/lib/rewards";
 import { MobileLayout } from "./-components/mobile-layout";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
