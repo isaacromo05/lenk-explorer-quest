@@ -58,57 +58,78 @@ export function PhotoCaptureModal({
   mode = "unlock",
   onClose,
   onSave,
+  onLater,
 }: PhotoCaptureModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [celebrating, setCelebrating] = useState(mode === "unlock");
+  const [stage, setStage] = useState<"celebrate" | "camera">(mode === "unlock" ? "celebrate" : "camera");
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [starting, setStarting] = useState(false);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    const video = videoRef.current;
+    if (video) video.srcObject = null;
   }, []);
 
-  const startCamera = useCallback(async (mode: "user" | "environment" = facingMode) => {
-    setCameraError(null);
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => undefined);
+  /**
+   * Full WebRTC restart whenever the live camera is shown or the facing mode
+   * toggles: old tracks are stopped, the <video> is detached, and a fresh
+   * stream is attached — this is what prevents the black-screen on switch.
+   */
+  useEffect(() => {
+    if (stage !== "camera" || photo) return;
+    let cancelled = false;
+
+    const attach = async () => {
+      setStarting(true);
+      setCameraError(null);
+      stopCamera();
+      const attempts: MediaStreamConstraints[] = [
+        { video: { facingMode: { ideal: facingMode } }, audio: false },
+        { video: true, audio: false },
+      ];
+      for (const constraints of attempts) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          if (cancelled) {
+            stream.getTracks().forEach((t) => t.stop());
+            return;
+          }
+          streamRef.current = stream;
+          const video = videoRef.current;
+          if (video) {
+            video.srcObject = stream;
+            await video.play().catch(() => undefined);
+          }
+          setStarting(false);
+          return;
+        } catch {
+          /* try the next, less strict constraint set */
+        }
       }
-    } catch {
-      setCameraError(
-        "Necesitamos acceso a la cámara para sellar este hito. Activa el permiso y vuelve a intentarlo.",
-      );
-    }
-  }, [facingMode]);
+      if (!cancelled) {
+        setStarting(false);
+        setCameraError(
+          "Necesitamos acceso a la cámara para sellar este hito. Activa el permiso y vuelve a intentarlo.",
+        );
+      }
+    };
+
+    void attach();
+    return () => {
+      cancelled = true;
+    };
+  }, [stage, facingMode, photo, stopCamera, retryKey]);
+
+  useEffect(() => stopCamera, [stopCamera]);
 
   const switchCamera = useCallback(() => {
-    const next = facingMode === "user" ? "environment" : "user";
-    setFacingMode(next);
-    void startCamera(next);
-  }, [facingMode, startCamera]);
-
-  useEffect(() => {
-    void startCamera(facingMode);
-    return stopCamera;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
   }, []);
-
-  useEffect(() => {
-    if (!celebrating) return;
-    const timer = window.setTimeout(() => setCelebrating(false), 1800);
-    return () => window.clearTimeout(timer);
-  }, [celebrating]);
 
   const composite = useCallback(
     (source: HTMLVideoElement | HTMLImageElement, w: number, h: number) => {
