@@ -6,6 +6,8 @@ import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@
 import { cn } from "@/design-system/lib/utils";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
+import { GUARDIANS } from "@/lib/guardians";
+
 import { GOLD_PIN, ROUTE_BADGES } from "@/lib/rewards";
 import { MobileLayout } from "./-components/mobile-layout";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
@@ -101,8 +103,51 @@ function PassportPage() {
 
         <section className="space-y-4">
           <Heading as="h2" level={3}>
+            Tus Guardianes Desbloqueados
+          </Heading>
+          <div className="grid grid-cols-3 gap-3">
+            {(["water", "summit", "culture"] as const).map((sector) => {
+              const progress = sectorProgress(sector);
+              const unlocked = hydrated && progress.current === progress.total;
+              const guardian = GUARDIANS[sector];
+              return (
+                <Card
+                  key={sector}
+                  className={cn(
+                    "flex flex-col items-center p-3",
+                    unlocked ? "shadow-md ring-2 ring-gold" : "opacity-80",
+                  )}
+                >
+                  <img
+                    src={guardian.image}
+                    alt={unlocked ? guardian.name : `${guardian.name} en silueta (bloqueado)`}
+                    width={512}
+                    height={512}
+                    loading="lazy"
+                    className={cn(
+                      "h-24 object-contain",
+                      unlocked
+                        ? "drop-shadow-[0_0_12px_var(--lenk-gold)]"
+                        : "brightness-0 opacity-40",
+                    )}
+                  />
+                  <Text size="sm" className="mt-2 text-center text-xs font-semibold">
+                    {guardian.name}
+                  </Text>
+                  <Text tone="muted" size="sm" className="text-center text-xs">
+                    {progress.current}/{progress.total} hitos
+                  </Text>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <Heading as="h2" level={3}>
             Vitrina de insignias
           </Heading>
+
           <div className="grid grid-cols-2 gap-3">
             {(["water", "summit", "culture"] as const).map((sector) => {
               const progress = sectorProgress(sector);

@@ -20,6 +20,8 @@ import { ROUTE_BADGES } from "@/lib/rewards";
 import { GUARDIANS } from "@/lib/guardians";
 import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
+import { GuardianFigureSelector } from "./-components/guardian-figure-selector";
+
 
 export const Route = createFileRoute("/shop")({
   head: () => ({
@@ -400,7 +402,10 @@ function ShopPage() {
           </CardContent>
         </Card>
 
+        <GuardianFigureSelector />
+
         <Card>
+
           <CardHeader>
             <CardTitle>Extras y coleccionables</CardTitle>
             <CardDescription>Añade piezas físicas a tu caja.</CardDescription>
