@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, CreditCard, ShoppingBag, Store, Truck, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, CreditCard, Gift, Lock, ShoppingBag, Truck, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Badge,
@@ -16,6 +16,8 @@ import {
   cn,
 } from "@/design-system";
 import { LOCATIONS, SECTORS, type SectorId } from "@/lib/locations";
+import { ROUTE_BADGES } from "@/lib/rewards";
+import { GUARDIANS } from "@/lib/guardians";
 import { usePassport } from "@/lib/passport";
 import { MobileLayout } from "./-components/mobile-layout";
 
@@ -43,7 +45,6 @@ const FRAMES = [
 type FrameId = (typeof FRAMES)[number]["id"];
 
 const ADDONS = [
-  { id: "medal", emoji: "🎖️", name: "Insignia Oficial de Ruta (física)", note: "Gratis al completar una ruta entera", price: 12 },
   { id: "figure", emoji: "🗿", name: "Figura 3D del Guardián", note: "Coleccionable pintado a mano", price: 29 },
   { id: "magnet", emoji: "🌲", name: "Imán grabado en madera de Lenk", note: "Madera local grabada a láser", price: 9 },
   { id: "passport", emoji: "📜", name: "Pasaporte / Certificado alpino impreso", note: "Con sello oficial de Lenk", price: 15 },
@@ -52,12 +53,6 @@ const ADDONS = [
 type AddonId = (typeof ADDONS)[number]["id"];
 
 const SHIPPING_HOME = 8;
-/** Route badges are earned per completed route; the gold medal is only for 8/8. */
-const ROUTE_BADGE: Record<SectorId, string> = {
-  water: "Insignia de la Ruta del Agua",
-  summit: "Insignia de la Ruta de las Cumbres",
-  culture: "Insignia de la Ruta Tradición & AlpKultur",
-};
 
 function chf(value: number) {
   return `CHF ${value.toFixed(2)}`;
@@ -108,16 +103,25 @@ function ShopPage() {
   const [frame, setFrame] = useState<FrameId>("m");
   const [selected, setSelected] = useState<string[]>([]);
   const [addons, setAddons] = useState<AddonId[]>([]);
-  const [delivery, setDelivery] = useState<"home" | "pickup">("home");
   const [paid, setPaid] = useState(false);
   const [pickerIndex, setPickerIndex] = useState<number | null>(null);
+  const [giftSectors, setGiftSectors] = useState<SectorId[]>([]);
+  const rewardsRef = useRef<HTMLElement | null>(null);
 
   const activeFrame = FRAMES.find((f) => f.id === frame)!;
   const completedSectors = (Object.keys(SECTORS) as SectorId[]).filter((s) => {
     const p = sectorProgress(s);
     return p.total > 0 && p.current === p.total;
   });
-  const medalFree = completedSectors.length > 0;
+  const toggleGift = (sector: SectorId) =>
+    setGiftSectors((prev) => (prev.includes(sector) ? prev.filter((s) => s !== sector) : [...prev, sector]));
+
+  /** Deep link from the route-completed modal: scroll to the rewards block. */
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#recompensas-desbloqueadas") {
+      rewardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   const toggleAddon = (id: AddonId) =>
     setAddons((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
@@ -135,18 +139,16 @@ function ShopPage() {
     });
 
   const addonTotal = useMemo(
-    () =>
-      addons.reduce((sum, id) => {
-        const addon = ADDONS.find((a) => a.id === id)!;
-        if (addon.id === "medal" && medalFree) return sum;
-        return sum + addon.price;
-      }, 0),
-    [addons, medalFree],
+    () => addons.reduce((sum, id) => sum + ADDONS.find((a) => a.id === id)!.price, 0),
+    [addons],
   );
 
-  const shipping = delivery === "home" ? SHIPPING_HOME : 0;
+  const shipping = SHIPPING_HOME;
   const routeComplete = scanned === total && total > 0;
-  const subtotal = activeFrame.price + addonTotal;
+  /** Paid products in the cart. Gifts stay at 0 CHF while there is at least one. */
+  const paidSubtotal = activeFrame.price + addonTotal;
+  const giftsFree = paidSubtotal > 0;
+  const subtotal = paidSubtotal + (giftsFree ? 0 : giftSectors.length * 12);
   const discount = routeComplete ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
   const totalPrice = subtotal - discount + shipping;
 
@@ -173,41 +175,91 @@ function ShopPage() {
           </Text>
         </div>
 
-        <Card className={cn(medalFree && "border-gold")}>
-          <CardContent className="flex items-start gap-3 py-5">
-            <span className="text-3xl" aria-hidden="true">
-              {routeComplete ? "🏅" : medalFree ? "🎖️" : "🧭"}
-            </span>
-            <div className="space-y-1">
-              {medalFree ? (
-                <>
-                  <Badge variant="gold">¡Sector completado!</Badge>
-                  <Text size="sm">
-                    ¡Sector completado! Has conseguido la {ROUTE_BADGE[completedSectors[0]!]}
-                    {completedSectors.length > 1
-                      ? ` y ${completedSectors.length - 1} insignia${completedSectors.length > 2 ? "s" : ""} más`
-                      : ""}
-                    . Ya puedes reclamar tu insignia física de ruta.
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Badge variant="outline">
-                    {scanned}/{total} hitos sellados
-                  </Badge>
-                  <Text size="sm" tone="muted">
-                    Completa una ruta entera para conseguir su Insignia Oficial de Ruta gratuita.
-                  </Text>
-                </>
-              )}
-              {routeComplete && (
-                <Text size="sm" tone="muted">
-                  ¡8/8 hitos! Has ganado la Medalla de Oro Trans-Simmental, incluida en tu pedido.
+        <section id="recompensas-desbloqueadas" ref={rewardsRef} className="scroll-mt-20 space-y-3">
+          <Heading as="h2" level={3}>
+            Tus recompensas desbloqueadas (regalo online)
+          </Heading>
+          <Text tone="muted" size="sm">
+            Consigue tu insignia física gratis en casa al comprar cualquier producto de nuestra tienda
+            online.
+          </Text>
+
+          <div className="grid gap-3">
+            {(Object.keys(SECTORS) as SectorId[]).map((sector) => {
+              const progress = sectorProgress(sector);
+              const unlocked = completedSectors.includes(sector);
+              const badge = ROUTE_BADGES[sector];
+              const inCart = giftSectors.includes(sector);
+              return (
+                <Card key={sector} className={cn(unlocked ? "border-gold shadow-md" : "opacity-70")}>
+                  <CardContent className="flex items-center gap-4 py-5">
+                    <span
+                      className={cn(
+                        "relative flex size-20 shrink-0 items-center justify-center rounded-full",
+                        unlocked ? "bg-gold/15" : "bg-background",
+                      )}
+                    >
+                      <img
+                        src={badge.image}
+                        alt={unlocked ? badge.name : `${badge.name} bloqueada`}
+                        width={512}
+                        height={512}
+                        loading="lazy"
+                        className={cn("size-16 object-contain", unlocked ? "drop-shadow-md" : "opacity-30 grayscale")}
+                      />
+                      {!unlocked && (
+                        <Lock className="absolute size-6 text-text-muted" aria-hidden="true" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <Text size="sm" className="font-semibold">
+                        {badge.shortName}
+                      </Text>
+                      {unlocked ? (
+                        <>
+                          <Badge variant="gold">🎁 Regalo gratis desbloqueado (0,00 €)</Badge>
+                          <Text tone="muted" size="sm" className="text-xs">
+                            {GUARDIANS[sector].name} · {progress.current}/{progress.total} hitos
+                          </Text>
+                          <Button
+                            variant={inCart ? "outline" : "gold"}
+                            size="sm"
+                            className="mt-1 w-full"
+                            aria-pressed={inCart}
+                            onClick={() => toggleGift(sector)}
+                          >
+                            <Gift className="size-4" aria-hidden="true" />
+                            {inCart ? "Regalo añadido al carrito" : "Añadir Regalo al Carrito"}
+                          </Button>
+                        </>
+                      ) : (
+                        <Text tone="muted" size="sm" className="text-xs">
+                          Completa los hitos de esta ruta para desbloquear tu regalo en la tienda (
+                          {progress.current}/{progress.total}).
+                        </Text>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {routeComplete && (
+            <Card className="border-gold">
+              <CardContent className="flex items-center gap-3 py-4">
+                <span className="text-2xl" aria-hidden="true">
+                  🏅
+                </span>
+                <Text size="sm">
+                  ¡8/8 hitos! Has ganado el Pin Supremo Lenk Gold / Imperial Edition, incluido en tu
+                  pedido online.
                 </Text>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
 
         <Card>
           <CardHeader>
@@ -354,9 +406,7 @@ function ShopPage() {
             <CardDescription>Añade piezas físicas a tu caja.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {ADDONS.map((addon) => {
-              const free = addon.id === "medal" && medalFree;
-              return (
+            {ADDONS.map((addon) => (
                 <label
                   key={addon.id}
                   className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface p-3"
@@ -374,14 +424,9 @@ function ShopPage() {
                     <span className="block text-sm font-semibold text-text">{addon.name}</span>
                     <span className="block text-xs text-text-muted">{addon.note}</span>
                   </span>
-                  {free ? (
-                    <Badge variant="gold">Gratis</Badge>
-                  ) : (
-                    <span className="text-sm font-semibold text-primary">{chf(addon.price)}</span>
-                  )}
+                  <span className="text-sm font-semibold text-primary">{chf(addon.price)}</span>
                 </label>
-              );
-            })}
+            ))}
           </CardContent>
         </Card>
 
@@ -391,33 +436,14 @@ function ShopPage() {
             <CardDescription>Resumen de tu pedido en francos suizos.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                aria-pressed={delivery === "home"}
-                onClick={() => setDelivery("home")}
-                className={cn(
-                  "flex flex-col items-start gap-1 rounded-xl border p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  delivery === "home" ? "border-primary bg-primary/5" : "border-border bg-surface",
-                )}
-              >
-                <Truck className="size-4 text-primary" aria-hidden="true" />
-                <span className="text-sm font-semibold text-primary">Envío a domicilio</span>
-                <span className="text-xs text-text-muted">{chf(SHIPPING_HOME)}</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={delivery === "pickup"}
-                onClick={() => setDelivery("pickup")}
-                className={cn(
-                  "flex flex-col items-start gap-1 rounded-xl border p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  delivery === "pickup" ? "border-primary bg-primary/5" : "border-border bg-surface",
-                )}
-              >
-                <Store className="size-4 text-primary" aria-hidden="true" />
-                <span className="text-sm font-semibold text-primary">Recoger en Lenk</span>
-                <span className="text-xs text-text-muted">Oficina de Turismo · Gratis</span>
-              </button>
+            <div className="flex items-center gap-3 rounded-xl border border-primary bg-primary/5 p-3">
+              <Truck className="size-5 text-primary" aria-hidden="true" />
+              <div>
+                <span className="block text-sm font-semibold text-primary">Envío a domicilio</span>
+                <span className="block text-xs text-text-muted">
+                  Tienda 100% online · {chf(SHIPPING_HOME)}
+                </span>
+              </div>
             </div>
 
             <form
@@ -452,22 +478,18 @@ function ShopPage() {
                 </label>
                 <Input id="shop-email" name="email" type="email" required maxLength={255} autoComplete="email" />
               </div>
-              {delivery === "home" && (
-                <>
-                  <div className="space-y-1">
+              <div className="space-y-1">
                     <label htmlFor="shop-address" className="text-xs font-semibold text-text-muted">
                       Dirección
                     </label>
-                    <Input id="shop-address" name="address" required maxLength={200} autoComplete="street-address" />
-                  </div>
-                  <div className="space-y-1">
+                <Input id="shop-address" name="address" required maxLength={200} autoComplete="street-address" />
+              </div>
+              <div className="space-y-1">
                     <label htmlFor="shop-zip" className="text-xs font-semibold text-text-muted">
                       Código postal
                     </label>
-                    <Input id="shop-zip" name="zip" required maxLength={10} autoComplete="postal-code" />
-                  </div>
-                </>
-              )}
+                <Input id="shop-zip" name="zip" required maxLength={10} autoComplete="postal-code" />
+              </div>
 
               <dl className="space-y-1 rounded-xl bg-background p-3 text-sm">
                 <div className="flex justify-between">
@@ -478,17 +500,26 @@ function ShopPage() {
                 </div>
                 {addons.map((id) => {
                   const addon = ADDONS.find((a) => a.id === id)!;
-                  const free = addon.id === "medal" && medalFree;
                   return (
                     <div key={id} className="flex justify-between">
                       <dt className="text-text-muted">{addon.name}</dt>
-                      <dd className="font-semibold text-text">{free ? "Gratis" : chf(addon.price)}</dd>
+                      <dd className="font-semibold text-text">{chf(addon.price)}</dd>
                     </div>
                   );
                 })}
+                {giftSectors.map((sector) => (
+                  <div key={sector} className="flex justify-between">
+                    <dt className="text-text-muted">
+                      🎁 {ROUTE_BADGES[sector].shortName} (regalo)
+                    </dt>
+                    <dd className="font-semibold text-gold-foreground">
+                      {giftsFree ? "0,00 € · Gratis" : chf(12)}
+                    </dd>
+                  </div>
+                ))}
                 <div className="flex justify-between">
                   <dt className="text-text-muted">
-                    {delivery === "home" ? "Envío a domicilio" : "Recogida en Lenk"}
+                    Envío a domicilio
                   </dt>
                   <dd className="font-semibold text-text">{shipping ? chf(shipping) : "Gratis"}</dd>
                 </div>
