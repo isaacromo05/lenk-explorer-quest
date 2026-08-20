@@ -1,3 +1,5 @@
+import figura3dPreview from "@/assets/figura-3d-preview.glb.asset.json";
+
 import type { SectorId } from "./locations";
 
 /** Official static asset paths — never generated dynamically. */
@@ -9,7 +11,7 @@ const GUARDIAN_IMAGES = {
 
 /** Optional 3D models (.glb). Files that are not published yet fall back to the PNG. */
 const GUARDIAN_MODELS = {
-  water: "/assets/figura-3d-preview.glb",
+  water: figura3dPreview.url,
   summit: "/assets/guardian-cumbres.glb",
   culture: "/assets/guardian-tradicion.glb",
 } as const;
