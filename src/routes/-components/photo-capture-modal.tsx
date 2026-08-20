@@ -1,4 +1,4 @@
-import { Camera, RefreshCw, SwitchCamera, X } from "lucide-react";
+import { Camera, Clock, RefreshCw, SwitchCamera, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Badge, Button, Heading, Text } from "@/design-system";
@@ -7,10 +7,12 @@ import { SECTORS, type Location } from "@/lib/locations";
 
 interface PhotoCaptureModalProps {
   location: Location;
-  /** "unlock" shows the mascot celebration first; "retake" goes straight to the live camera. */
+  /** "unlock" shows the celebration + choice first; "retake" goes straight to the live camera. */
   mode?: "unlock" | "retake";
   onClose: () => void;
   onSave: (photo: string) => void;
+  /** "Hacer foto más tarde" — the location stays unlocked without a photo. */
+  onLater?: () => void;
 }
 
 function token(name: string, fallback: string) {
@@ -56,57 +58,79 @@ export function PhotoCaptureModal({
   mode = "unlock",
   onClose,
   onSave,
+  onLater,
 }: PhotoCaptureModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [celebrating, setCelebrating] = useState(mode === "unlock");
+  const [stage, setStage] = useState<"celebrate" | "camera">(mode === "unlock" ? "celebrate" : "camera");
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [starting, setStarting] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    const video = videoRef.current;
+    if (video) video.srcObject = null;
   }, []);
 
-  const startCamera = useCallback(async (mode: "user" | "environment" = facingMode) => {
-    setCameraError(null);
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => undefined);
+  /**
+   * Full WebRTC restart whenever the live camera is shown or the facing mode
+   * toggles: old tracks are stopped, the <video> is detached, and a fresh
+   * stream is attached — this is what prevents the black-screen on switch.
+   */
+  useEffect(() => {
+    if (stage !== "camera" || photo) return;
+    let cancelled = false;
+
+    const attach = async () => {
+      setStarting(true);
+      setCameraError(null);
+      stopCamera();
+      const attempts: MediaStreamConstraints[] = [
+        { video: { facingMode: { ideal: facingMode } }, audio: false },
+        { video: true, audio: false },
+      ];
+      for (const constraints of attempts) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          if (cancelled) {
+            stream.getTracks().forEach((t) => t.stop());
+            return;
+          }
+          streamRef.current = stream;
+          const video = videoRef.current;
+          if (video) {
+            video.srcObject = stream;
+            await video.play().catch(() => undefined);
+          }
+          setStarting(false);
+          return;
+        } catch {
+          /* try the next, less strict constraint set */
+        }
       }
-    } catch {
-      setCameraError(
-        "Necesitamos acceso a la cámara para sellar este hito. Activa el permiso y vuelve a intentarlo.",
-      );
-    }
-  }, [facingMode]);
+      if (!cancelled) {
+        setStarting(false);
+        setCameraError(
+          "Necesitamos acceso a la cámara para sellar este hito. Activa el permiso y vuelve a intentarlo.",
+        );
+      }
+    };
+
+    void attach();
+    return () => {
+      cancelled = true;
+    };
+  }, [stage, facingMode, photo, stopCamera, retryKey]);
+
+  useEffect(() => stopCamera, [stopCamera]);
 
   const switchCamera = useCallback(() => {
-    const next = facingMode === "user" ? "environment" : "user";
-    setFacingMode(next);
-    void startCamera(next);
-  }, [facingMode, startCamera]);
-
-  useEffect(() => {
-    void startCamera(facingMode);
-    return stopCamera;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
   }, []);
-
-  useEffect(() => {
-    if (!celebrating) return;
-    const timer = window.setTimeout(() => setCelebrating(false), 1800);
-    return () => window.clearTimeout(timer);
-  }, [celebrating]);
 
   const composite = useCallback(
     (source: HTMLVideoElement | HTMLImageElement, w: number, h: number) => {
@@ -137,7 +161,7 @@ export function PhotoCaptureModal({
 
   const retake = () => {
     setPhoto(null);
-    void startCamera();
+    setRetryKey((k) => k + 1);
   };
 
   return (
@@ -148,22 +172,32 @@ export function PhotoCaptureModal({
       className="fixed inset-0 z-50 flex items-end justify-center bg-text/60 p-0 sm:items-center sm:p-4"
     >
       <div className="w-full max-w-md rounded-2xl bg-surface p-5 shadow-lg">
-        {celebrating && (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
+        {stage === "celebrate" && (
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
             <span className="text-6xl" aria-hidden="true">
               {SECTORS[location.sector].mascotEmoji}
             </span>
-            <Badge variant="gold">¡Desbloqueado!</Badge>
+            <Badge variant="gold">¡Desbloqueado y guardado!</Badge>
             <Heading as="h2" level={3}>
               ¡{location.name} desbloqueado!
             </Heading>
             <Text tone="muted" size="sm">
-              {SECTORS[location.sector].mascot} te acompaña. Abriendo la cámara para tu foto en
-              directo…
+              {SECTORS[location.sector].mascot} te acompaña. Ya está sellado en tu pasaporte: puedes
+              hacer la foto ahora o cuando quieras.
             </Text>
+            <div className="mt-2 flex w-full flex-col gap-3">
+              <Button variant="gold" size="lg" onClick={() => setStage("camera")}>
+                <Camera className="size-4" aria-hidden="true" />
+                Tomar foto ahora
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => (onLater ?? onClose)()}>
+                <Clock className="size-4" aria-hidden="true" />
+                Hacer foto más tarde
+              </Button>
+            </div>
           </div>
         )}
-        <div className={cn(celebrating && "hidden")}>
+        <div className={cn(stage === "celebrate" && "hidden")}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <Badge variant="gold" className="mb-2">
@@ -208,6 +242,13 @@ export function PhotoCaptureModal({
               </div>
             </div>
           )}
+          {starting && !photo && !cameraError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/70 p-6 text-center">
+              <Text tone="muted" size="sm">
+                Activando la cámara…
+              </Text>
+            </div>
+          )}
           {cameraError && !photo && (
             <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
               <Text tone="muted" size="sm">
@@ -230,11 +271,11 @@ export function PhotoCaptureModal({
         ) : (
           <div className="flex gap-3">
             {cameraError && (
-              <Button variant="outline" className="flex-1" onClick={() => void startCamera()}>
+              <Button variant="outline" className="flex-1" onClick={() => setRetryKey((k) => k + 1)}>
                 Reintentar cámara
               </Button>
             )}
-            <Button className="flex-1" onClick={capture} disabled={Boolean(cameraError)}>
+            <Button className="flex-1" onClick={capture} disabled={Boolean(cameraError) || starting}>
               <Camera className="size-4" aria-hidden="true" />
               Tomar foto
             </Button>
@@ -243,6 +284,7 @@ export function PhotoCaptureModal({
               onClick={switchCamera}
               aria-label="Cambiar cámara"
               title="Cambiar cámara"
+              disabled={starting}
             >
               <SwitchCamera className="size-4" aria-hidden="true" />
               Cambiar cámara 🔄

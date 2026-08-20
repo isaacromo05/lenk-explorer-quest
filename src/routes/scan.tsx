@@ -71,6 +71,7 @@ function ScanPage() {
           const found = result?.data ? resolveLocation(result.data) : undefined;
           if (found) {
             stop();
+            unlock(found.id);
             setPending(found);
             return;
           }
@@ -82,7 +83,7 @@ function ScanPage() {
       setError("No pudimos acceder a la cámara. Usa los botones de prueba para simular un escaneo.");
       setActive(false);
     }
-  }, [stop]);
+  }, [stop, unlock]);
 
   useEffect(() => stop, [stop]);
 
@@ -160,6 +161,7 @@ function ScanPage() {
                     className="h-auto flex-col items-start gap-1 py-3 text-left"
                     onClick={() => {
                       stop();
+                      unlock(location.id);
                       setPending(location);
                     }}
                   >
@@ -187,6 +189,10 @@ function ScanPage() {
         <PhotoCaptureModal
           location={pending}
           onClose={() => setPending(null)}
+          onLater={() => {
+            setPending(null);
+            void navigate({ to: "/passport" });
+          }}
           onSave={(photo) => {
             unlock(pending.id, photo);
             setPending(null);

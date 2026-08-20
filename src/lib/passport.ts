@@ -6,7 +6,8 @@ const STORAGE_KEY = "lenk-quest-passport-v1";
 
 export interface UnlockedEntry {
   locationId: string;
-  photo: string;
+  /** null while the explorer chose "hacer foto más tarde". */
+  photo: string | null;
   unlockedAt: string;
 }
 
@@ -49,12 +50,27 @@ export function usePassport() {
     };
   }, []);
 
-  const unlock = useCallback((locationId: string, photo: string) => {
+  /** Mark a location as unlocked (scan-now) and optionally attach a photo (snap-later). */
+  const unlock = useCallback((locationId: string, photo: string | null = null) => {
+    const current = read();
+    const existing = current[locationId];
     const next = {
-      ...read(),
-      [locationId]: { locationId, photo, unlockedAt: new Date().toISOString() },
+      ...current,
+      [locationId]: {
+        locationId,
+        photo: photo ?? existing?.photo ?? null,
+        unlockedAt: existing?.unlockedAt ?? new Date().toISOString(),
+      },
     };
     write(next);
+  }, []);
+
+  /** Attach or replace the photo of an already unlocked location. */
+  const setPhoto = useCallback((locationId: string, photo: string | null) => {
+    const current = read();
+    const existing = current[locationId];
+    if (!existing) return;
+    write({ ...current, [locationId]: { ...existing, photo } });
   }, []);
 
   const reset = useCallback(() => write({}), []);
@@ -66,6 +82,7 @@ export function usePassport() {
   }, []);
 
   const entries = LOCATIONS.map((l) => state[l.id]).filter(Boolean) as UnlockedEntry[];
+  const photoEntries = entries.filter((e): e is UnlockedEntry & { photo: string } => Boolean(e.photo));
 
   const sectorProgress = (sector: SectorId) => {
     const all = LOCATIONS.filter((l) => l.sector === sector);
@@ -76,12 +93,16 @@ export function usePassport() {
     state,
     hydrated,
     unlock,
+    setPhoto,
     reset,
     remove,
     entries,
+    photoEntries,
     scanned: entries.length,
+    photographed: photoEntries.length,
     total: TOTAL_LOCATIONS,
     isUnlocked: (id: string) => Boolean(state[id]),
+    hasPhoto: (id: string) => Boolean(state[id]?.photo),
     sectorProgress,
     sectors: SECTORS,
   };

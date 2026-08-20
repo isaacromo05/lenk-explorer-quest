@@ -97,12 +97,21 @@ function HomePage() {
                 if (!location) return null;
                 return (
                   <Card key={entry.locationId} className="overflow-hidden">
-                    <img
-                      src={entry.photo}
-                      alt={`Foto de ${location.name}`}
-                      className="aspect-square w-full object-cover"
-                      loading="lazy"
-                    />
+                    {entry.photo ? (
+                      <img
+                        src={entry.photo}
+                        alt={`Foto de ${location.name}`}
+                        className="aspect-square w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex aspect-square w-full flex-col items-center justify-center gap-1 bg-background">
+                        <span className="text-2xl" aria-hidden="true">
+                          {SECTORS[location.sector].mascotEmoji}
+                        </span>
+                        <span className="text-[10px] font-semibold text-text-muted">Sin foto</span>
+                      </div>
+                    )}
                     <div className="p-2">
                       <Text size="sm" className="truncate font-semibold">
                         {location.name}
