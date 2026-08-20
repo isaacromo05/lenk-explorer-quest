@@ -43,7 +43,7 @@ const FRAMES = [
 type FrameId = (typeof FRAMES)[number]["id"];
 
 const ADDONS = [
-  { id: "medal", emoji: "🏅", name: "Medalla física de sector", note: "Gratis si tienes un sector completo", price: 12 },
+  { id: "medal", emoji: "🎖️", name: "Insignia Oficial de Ruta (física)", note: "Gratis al completar una ruta entera", price: 12 },
   { id: "figure", emoji: "🗿", name: "Figura 3D del Guardián", note: "Coleccionable pintado a mano", price: 29 },
   { id: "magnet", emoji: "🌲", name: "Imán grabado en madera de Lenk", note: "Madera local grabada a láser", price: 9 },
   { id: "passport", emoji: "📜", name: "Pasaporte / Certificado alpino impreso", note: "Con sello oficial de Lenk", price: 15 },
@@ -52,14 +52,55 @@ const ADDONS = [
 type AddonId = (typeof ADDONS)[number]["id"];
 
 const SHIPPING_HOME = 8;
-const MEDAL_TIER: Record<SectorId, string> = {
-  water: "Medalla de Bronce del Sector Agua",
-  summit: "Medalla de Plata del Sector Cumbres",
-  culture: "Medalla de Tradición AlpKultur",
+/** Route badges are earned per completed route; the gold medal is only for 8/8. */
+const ROUTE_BADGE: Record<SectorId, string> = {
+  water: "Insignia de la Ruta del Agua",
+  summit: "Insignia de la Ruta de las Cumbres",
+  culture: "Insignia de la Ruta Tradición & AlpKultur",
 };
 
 function chf(value: number) {
   return `CHF ${value.toFixed(2)}`;
+}
+
+/**
+ * Balanced, always-filled collage templates: no empty slots, no "+" placeholders.
+ * Each entry gives the grid column setup plus the span classes per photo.
+ */
+function collageLayout(count: number): { grid: string; items: string[] } {
+  switch (count) {
+    case 1:
+      return { grid: "grid-cols-1 w-44", items: ["col-span-1 aspect-square"] };
+    case 2:
+      return { grid: "grid-cols-2 w-56", items: Array(2).fill("col-span-1 aspect-square") };
+    case 3:
+      return {
+        grid: "grid-cols-2 w-56",
+        items: ["col-span-2 aspect-[2/1]", "col-span-1 aspect-square", "col-span-1 aspect-square"],
+      };
+    case 4:
+      return { grid: "grid-cols-2 w-56", items: Array(4).fill("col-span-1 aspect-square") };
+    case 5:
+      return {
+        grid: "grid-cols-6 w-60",
+        items: [
+          "col-span-3 aspect-square",
+          "col-span-3 aspect-square",
+          "col-span-2 aspect-square",
+          "col-span-2 aspect-square",
+          "col-span-2 aspect-square",
+        ],
+      };
+    case 6:
+      return { grid: "grid-cols-3 w-60", items: Array(6).fill("col-span-1 aspect-square") };
+    case 7:
+      return {
+        grid: "grid-cols-6 w-60",
+        items: ["col-span-6 aspect-[2/1]", ...Array(6).fill("col-span-2 aspect-square")],
+      };
+    default:
+      return { grid: "grid-cols-4 w-64", items: Array(count).fill("col-span-1 aspect-square") };
+  }
 }
 
 function ShopPage() {
@@ -118,13 +159,7 @@ function ShopPage() {
     [selected, entries],
   );
 
-  const slotCount = Math.max(mockupPhotos.length + 1, 1);
-  const gridClass =
-    mockupPhotos.length <= 1
-      ? "grid-cols-1 w-44"
-      : mockupPhotos.length <= 4
-        ? "grid-cols-2 w-56"
-        : "grid-cols-3 w-60";
+  const layout = collageLayout(mockupPhotos.length);
 
   return (
     <MobileLayout>
@@ -141,18 +176,18 @@ function ShopPage() {
         <Card className={cn(medalFree && "border-gold")}>
           <CardContent className="flex items-start gap-3 py-5">
             <span className="text-3xl" aria-hidden="true">
-              {medalFree ? "🏅" : "🧭"}
+              {routeComplete ? "🏅" : medalFree ? "🎖️" : "🧭"}
             </span>
             <div className="space-y-1">
               {medalFree ? (
                 <>
-                  <Badge variant="gold">
-                    ¡Has completado {completedSectors.length} sector
-                    {completedSectors.length > 1 ? "es" : ""}!
-                  </Badge>
+                  <Badge variant="gold">¡Sector completado!</Badge>
                   <Text size="sm">
-                    Tienes acceso a la {MEDAL_TIER[completedSectors[0]!]}
-                    {completedSectors.length > 1 ? " y más recompensas" : ""}.
+                    ¡Sector completado! Has conseguido la {ROUTE_BADGE[completedSectors[0]!]}
+                    {completedSectors.length > 1
+                      ? ` y ${completedSectors.length - 1} insignia${completedSectors.length > 2 ? "s" : ""} más`
+                      : ""}
+                    . Ya puedes reclamar tu insignia física de ruta.
                   </Text>
                 </>
               ) : (
@@ -161,13 +196,13 @@ function ShopPage() {
                     {scanned}/{total} hitos sellados
                   </Badge>
                   <Text size="sm" tone="muted">
-                    Completa una ruta entera para desbloquear tu medalla física gratuita.
+                    Completa una ruta entera para conseguir su Insignia Oficial de Ruta gratuita.
                   </Text>
                 </>
               )}
-              {scanned === total && (
+              {routeComplete && (
                 <Text size="sm" tone="muted">
-                  Ruta Trans-Simmental completa: Medalla de Oro incluida.
+                  ¡8/8 hitos! Has ganado la Medalla de Oro Trans-Simmental, incluida en tu pedido.
                 </Text>
               )}
             </div>
@@ -262,44 +297,35 @@ function ShopPage() {
                   }}
                 >
                   <div className="rounded-[2px] bg-[#fbfaf7] p-3 shadow-[inset_0_2px_6px_rgba(15,23,42,0.18)]">
-                    <div
-                      className={cn(
-                        "grid gap-2",
-                        gridClass,
-                      )}
-                    >
-                      {Array.from({ length: slotCount }).map((_, i) => {
-                        const entry = mockupPhotos[i];
-                        const location = entry
-                          ? LOCATIONS.find((l) => l.id === entry.locationId)
-                          : undefined;
-                        return entry ? (
-                          <button
-                            key={entry.locationId}
-                            type="button"
-                            onClick={() => setPickerIndex(i)}
-                            aria-label={`Cambiar la foto de la posición ${i + 1}`}
-                            className="block w-full overflow-hidden rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            <img
-                              src={entry.photo}
-                              alt={`${location?.name ?? ""} en el marco`}
-                              className="aspect-square w-full object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
-                            />
-                          </button>
-                        ) : (
-                          <button
-                            key={`empty-${i}`}
-                            type="button"
-                            onClick={() => setPickerIndex(i)}
-                            aria-label={`Añadir una foto en la posición ${i + 1}`}
-                            className="flex aspect-square w-full items-center justify-center rounded-[2px] bg-[#eceae4] text-lg text-text-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                          >
-                            <span aria-hidden="true">＋</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {mockupPhotos.length === 0 ? (
+                      <div className="flex aspect-[4/5] w-44 items-center justify-center rounded-[2px] bg-[#eceae4] px-4 text-center text-[11px] font-semibold text-text-muted">
+                        Selecciona tus fotos para ver el collage
+                      </div>
+                    ) : (
+                      <div className={cn("grid gap-2", layout.grid)}>
+                        {mockupPhotos.map((entry, i) => {
+                          const location = LOCATIONS.find((l) => l.id === entry.locationId);
+                          return (
+                            <button
+                              key={entry.locationId}
+                              type="button"
+                              onClick={() => setPickerIndex(i)}
+                              aria-label={`Cambiar la foto de la posición ${i + 1}`}
+                              className={cn(
+                                "block w-full overflow-hidden rounded-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                layout.items[i],
+                              )}
+                            >
+                              <img
+                                src={entry.photo}
+                                alt={`${location?.name ?? ""} en el marco`}
+                                className="size-full object-cover shadow-[0_1px_3px_rgba(15,23,42,0.35)]"
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                     <p className="mt-3 text-center text-[10px] font-bold tracking-[0.18em] text-primary">
                       LENK COLLECTOR BOX
                     </p>
