@@ -1,0 +1,441 @@
+{
+  "meta": {
+    "name": "Lenk explorer quest",
+    "package": "@ws-yehlf0bvbggy2xjowcvf/0b5b7613-efd0-42eb-979a-02cf2acfa445",
+    "version": "1.0.0",
+    "framework": "react",
+    "css_framework": "tailwind",
+    "starter_template": "custom_design_system",
+    "theme_files": [
+      "src/design-system/styles/theme.css"
+    ],
+    "source_type": "local",
+    "source_manifest": {
+      "#enrichment": "23f9924b32dd06472393749a36e8480d6dacdedace6f4c7cd1c5bc46da647cbb",
+      ".dsignore": "10e70ddb46570e42474ff25a80117941",
+      ".gitignore": "6059213806e442947666752f3db6bfdc",
+      ".lovable/mem/design/lenk-tokens.md": "dc2e05ae78147a75ca43f5dc01badb63",
+      ".lovable/mem/index.md": "9cdb8141193742ed9662d93810dbfff6",
+      ".lovable/meta.yaml": "77fd838353a70836e811a6991e45a92c",
+      ".lovable/plan/guardián-de-tradición-nuevo-modelo-3d-y-vistas-oficiales-2026-08-21.md": "2c91be98b69e02cbb1054f930ad7eda5",
+      ".lovable/sources.yaml": "04c98d3358f2ccf212d9437490dd3e83",
+      ".lovable/system.md": "2608953845459d565e738496e281f4ec",
+      "README.md": "d19675c449605f23c7cfa133c69b398b",
+      "bunfig.toml": "25f4c8696b22b0943db7191e0cdf7942",
+      "eslint.config.js": "07a67437fb1a45ab36d6de0145ff09de",
+      "lovable.toml": "b32568cbef680de9cbb176344986f1a3",
+      "mockupPreviewPlugin.ts": "e42e31c16e4b3b36f860729f5224edad",
+      "package.json": "bfa0ac0728d0ca64f3ddd9242138090a",
+      "public/assets/guardian-agua-removebg-preview.png": "00a73256c437708cf041f1967b0cd9fc",
+      "public/assets/guardian-agua.png": "265eaa3f12b92147a749d9a10c309ffe",
+      "public/assets/guardian-cumbres.png": "082b23734befa85510f63e9430a4d5c0",
+      "public/assets/guardian-tradicion-back.png": "989b986534f142a493d0a8e9084c626e",
+      "public/assets/guardian-tradicion-left.png": "a378cdd73c6b1f4afcff98471b7beb62",
+      "public/assets/guardian-tradicion.png": "de334e2e7aa1dba6ba6e8d52fae2e257",
+      "public/assets/insignia-agua.png": "bde1ee90b87cd2df3b002933dbc82855",
+      "public/assets/insignia-cumbres.png": "baa44e6969e7712d808a2ba8c27db92e",
+      "public/assets/insignia-tradicion.png": "4d7962c154b2af3f2b6e50a40b7b6040",
+      "public/assets/pin-gold-back.png": "1a9c584a1a73214ad2266684c6011e90",
+      "public/assets/pin-gold-front.png": "aab21b5cb7e1ad4d87f2bc220e8f465e",
+      "public/favicon.ico": "9f504444f85a5af2eef9264b02ae40be",
+      "src/assets/figura-3d-textura-preview.glb.asset.json": "5be044496be8fe607cc6bd2088f268d8",
+      "src/assets/guardian-cumbres.glb.asset.json": "c4ee514612f5b80fdbc7bdeeda17d1b0",
+      "src/assets/guardian-tradicion.glb.asset.json": "86e81762513e419ad3a01ce655bf932c",
+      "src/assets/illustrations/badge-culture.png": "4d7962c154b2af3f2b6e50a40b7b6040",
+      "src/assets/illustrations/badge-summit.png": "baa44e6969e7712d808a2ba8c27db92e",
+      "src/assets/illustrations/badge-water.png": "bde1ee90b87cd2df3b002933dbc82855",
+      "src/assets/illustrations/guardian-culture.png": "b76ac1151c4befc8971010fa8979402d",
+      "src/assets/illustrations/guardian-summit.png": "010d3c9a646341aecd30c402cf906b30",
+      "src/assets/illustrations/guardian-water.png": "265eaa3f12b92147a749d9a10c309ffe",
+      "src/assets/illustrations/pin-back.png": "1a9c584a1a73214ad2266684c6011e90",
+      "src/assets/illustrations/pin-front.png": "aab21b5cb7e1ad4d87f2bc220e8f465e",
+      "src/design-system/components/badge.tsx": "b7c248c5483882e0296e5a5316029ec1",
+      "src/design-system/components/button.tsx": "009b694577bc4f5f4177efd49986f3af",
+      "src/design-system/components/card.tsx": "0fc5c35b0f238847ded3bfa78517fbdd",
+      "src/design-system/components/heading.tsx": "3ef06184bbde09311365ba447f35b39b",
+      "src/design-system/components/input.tsx": "e38e3375943ab61cf6963c1ed2ad30fc",
+      "src/design-system/components/medal.tsx": "050fbc31bcb363114581e487dcd2ca04",
+      "src/design-system/components/text.tsx": "41b22b2be5d7b107eb6fb9f6d0558e18",
+      "src/design-system/index.ts": "9a06c534a9e8d38987f14163d8980d87",
+      "src/design-system/lib/utils.ts": "3e2f863dfa4dafe08e02b43a68c614fa",
+      "src/design-system/styles/theme.css": "a0d3656fe13e82de8d1d8c86aa4f7539",
+      "src/index.ts": "575c220411934d70091b4a9af71ee4c3",
+      "src/lib/guardians.ts": "e0f1394ab39626b90ee3a77e69568630",
+      "src/lib/locations.ts": "2008363bcd3bbd37e6fa79fd5681a458",
+      "src/lib/passport.ts": "c594b3f1ffcae65fc9c83b5e6df75e51",
+      "src/lib/rewards.ts": "21cf59094a78d4c9b5ac3979a9f4b7ea",
+      "src/mockup-preview.d.ts": "38969839f35ce2966e32a9f01a5c09ea",
+      "src/routeTree.gen.ts": "363344a21e5eefcadff83b82374ec6a7",
+      "src/router.tsx": "8f905e713b0eba7fa8148b7995a708c9",
+      "src/routes/-components/achievement-modal.tsx": "b2b538a423d89066d0e1d1a2afbdf831",
+      "src/routes/-components/gold-pin-modal.tsx": "a622b296a5e659ae6d03511de51a038b",
+      "src/routes/-components/guardian-3d-viewer.tsx": "bef605eac22725cb4c24d0cd821bcac1",
+      "src/routes/-components/guardian-figure-selector.tsx": "66996d7c21074511c7e72ae103c0238e",
+      "src/routes/-components/mobile-layout.tsx": "a043081804fc833f3190551efcb79070",
+      "src/routes/-components/photo-capture-modal.tsx": "d9eca824ef285c20cac086d0022c5e3c",
+      "src/routes/-components/photo-manage-modal.tsx": "37c09a87b3988073c2d35054ced41f8f",
+      "src/routes/-components/route-badge-modal.tsx": "fb173913843de5373ac49e50ca7ad223",
+      "src/routes/-components/route-card.tsx": "b4bdc7fab58281c2d241dd817c1d52a8",
+      "src/routes/-components/route-detail-modal.tsx": "c26ee9886e6cf3c7b37967fcd8a2bcb6",
+      "src/routes/[__component].preview.$.tsx": "06d671f4774ac83355e59ad69a350bab",
+      "src/routes/[__mockup].preview.$.tsx": "5d9f42470848aa60148f20f9580e240e",
+      "src/routes/__root.tsx": "8a8f529ca53d4fba85a1d4449f86d2ab",
+      "src/routes/index.tsx": "e5e99b98b45451c1bc53e2b917588ede",
+      "src/routes/passport.tsx": "50835dd00ed593ef3c852e71919e7010",
+      "src/routes/scan.tsx": "493a342d1529fe9ba5823fcffcf9e365",
+      "src/routes/shop.tsx": "586b1684383d3f41465ada729fc42030",
+      "src/styles.css": "507cce7c7c498cb06d6d87dc51c14199",
+      "tsconfig.json": "994abf64c2b9f78b568879f80ed0170e",
+      "vite.config.ts": "aa3cd5a0f557eeef887df210791329a2",
+      "wrangler.jsonc": "680b897d48e44bcc65fe437c29b38f3b"
+    },
+    "pipeline_version": 8
+  },
+  "tokens": {
+    "color": [
+      {
+        "name": "--lenk-primary",
+        "raw": "#1a2b4c",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-primary-hover",
+        "raw": "#14213b",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-primary-foreground",
+        "raw": "#ffffff",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-secondary",
+        "raw": "#2d5a27",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-secondary-hover",
+        "raw": "#24491f",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-secondary-foreground",
+        "raw": "#ffffff",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-gold",
+        "raw": "#d4af37",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-gold-hover",
+        "raw": "#bf9c2c",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-gold-foreground",
+        "raw": "#1a2b4c",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-background",
+        "raw": "#f8f9fa",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-surface",
+        "raw": "#ffffff",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-border",
+        "raw": "#e2e8f0",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-success",
+        "raw": "#2d5a27",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-danger",
+        "raw": "#b42318",
+        "source": "src/design-system/styles/theme.css"
+      }
+    ],
+    "typography": [
+      {
+        "name": "--lenk-text",
+        "raw": "#0f172a",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-text-muted",
+        "raw": "#475569",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--font-display",
+        "raw": "\"Plus Jakarta Sans\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--font-sans",
+        "raw": "\"Plus Jakarta Sans\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
+        "source": "src/design-system/styles/theme.css"
+      }
+    ],
+    "radius": [
+      {
+        "name": "--lenk-radius-md",
+        "raw": "0.75rem",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-radius-lg",
+        "raw": "1rem",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-radius-xl",
+        "raw": "1.5rem",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-radius-pill",
+        "raw": "9999px",
+        "source": "src/design-system/styles/theme.css"
+      }
+    ],
+    "shadow": [
+      {
+        "name": "--lenk-shadow-sm",
+        "raw": "0 1px 2px 0 rgb(15 23 42 / 0.06)",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-shadow-md",
+        "raw": "0 4px 12px -2px rgb(15 23 42 / 0.1)",
+        "source": "src/design-system/styles/theme.css"
+      },
+      {
+        "name": "--lenk-shadow-lg",
+        "raw": "0 12px 32px -8px rgb(15 23 42 / 0.16)",
+        "source": "src/design-system/styles/theme.css"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Badge",
+      "file": "src/design-system/components/badge.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "neutral",
+            "primary",
+            "trail",
+            "gold",
+            "outline"
+          ],
+          "default": "neutral"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md"
+          ],
+          "default": "sm"
+        }
+      ]
+    },
+    {
+      "name": "Button",
+      "file": "src/design-system/components/button.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "primary",
+            "secondary",
+            "gold",
+            "outline",
+            "ghost"
+          ],
+          "default": "primary"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        },
+        {
+          "name": "asChild",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "file": "src/design-system/components/card.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "CardHeader",
+      "file": "src/design-system/components/card.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "CardTitle",
+      "file": "src/design-system/components/card.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "CardDescription",
+      "file": "src/design-system/components/card.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "CardContent",
+      "file": "src/design-system/components/card.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "CardFooter",
+      "file": "src/design-system/components/card.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "Heading",
+      "file": "src/design-system/components/heading.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "level",
+          "type": "enum",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "default": "2"
+        },
+        {
+          "name": "as",
+          "type": "enum",
+          "values": [
+            "h1",
+            "h2",
+            "h3",
+            "h4"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Input",
+      "file": "src/design-system/components/input.tsx",
+      "import_path": ""
+    },
+    {
+      "name": "Medal",
+      "file": "src/design-system/components/medal.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "locked",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "Text",
+      "file": "src/design-system/components/text.tsx",
+      "import_path": "",
+      "props": [
+        {
+          "name": "tone",
+          "type": "enum",
+          "values": [
+            "default",
+            "muted",
+            "inverse"
+          ],
+          "default": "default"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "file": "src/assets/illustrations/badge-culture.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/badge-summit.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/badge-water.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/guardian-culture.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/guardian-summit.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/guardian-water.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/pin-back.png",
+      "kind": "illustration",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/illustrations/pin-front.png",
+      "kind": "illustration",
+      "format": "png"
+    }
+  ]
+}
