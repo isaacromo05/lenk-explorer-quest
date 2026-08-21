@@ -1,5 +1,5 @@
-import { Suspense, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Bounds, ContactShadows, OrbitControls, useGLTF, useProgress } from "@react-three/drei";
 import { Loader2 } from "lucide-react";
 
@@ -14,6 +14,17 @@ export function preloadGuardianModels(urls: string[]) {
   else window.setTimeout(run, 800);
 }
 
+/** Solicita un frame cuando el modelo termina de cargar (frameloop="demand"). */
+function InvalidateOnLoad() {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    invalidate();
+    const id = window.setTimeout(() => invalidate(), 60);
+    return () => window.clearTimeout(id);
+  });
+  return null;
+}
+
 function GuardianModel({ url }: { url: string }) {
   const { scene } = useGLTF(url);
 
@@ -21,8 +32,8 @@ function GuardianModel({ url }: { url: string }) {
     scene.traverse((child) => {
       const mesh = child as unknown as { isMesh?: boolean; castShadow?: boolean; receiveShadow?: boolean };
       if (mesh.isMesh) {
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
       }
     });
   }, [scene]);
@@ -76,41 +87,61 @@ interface Guardian3DViewerProps {
   className?: string;
 }
 
-/** Visor 3D del guardián: R3F + drei, sombras ligeras y limpieza de memoria. */
+/** Visor 3D del guardián: se monta solo al entrar en pantalla y renderiza bajo demanda. */
 export function Guardian3DViewer({ url, label, className }: Guardian3DViewerProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
 
-  if (!mounted) {
-    return <div className={className} style={{ height: 260 }} aria-hidden="true" />;
-  }
+  // Intersection Observer: no montamos el Canvas hasta que el visor entra en el viewport.
+  useEffect(() => {
+    const node = hostRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) setVisible(entry.isIntersecting);
+      },
+      { rootMargin: "150px 0px", threshold: 0.01 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const onCreated = useCallback(({ invalidate }: { invalidate: () => void }) => invalidate(), []);
 
   return (
-    <div className={className} style={{ position: "relative", height: 260 }} aria-busy>
-      <Canvas
-        key={url}
-        shadows
-        dpr={[1, 1.6]}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0.6, 3], fov: 40 }}
-      >
-        <ambientLight intensity={0.7} />
-        <directionalLight
-          position={[3, 5, 3]}
-          intensity={1.6}
-          castShadow
-          shadow-mapSize={[512, 512]}
-          shadow-bias={-0.0005}
-        />
-        <Suspense fallback={null}>
-          <Bounds fit clip observe margin={1.2}>
-            <GuardianModel url={url} />
-          </Bounds>
-        </Suspense>
-        <ContactShadows position={[0, -1, 0]} opacity={0.35} scale={6} blur={2.4} far={3} resolution={512} />
-        <OrbitControls makeDefault enablePan={false} autoRotate autoRotateSpeed={1.2} minDistance={1.2} maxDistance={6} />
-      </Canvas>
-      <LoadingOverlay label={label} />
+    <div ref={hostRef} className={className} style={{ position: "relative", height: 260 }} aria-busy={!visible}>
+      {visible ? (
+        <>
+          <Canvas
+            key={url}
+            frameloop="demand"
+            dpr={[1, 1.5]}
+            gl={{ antialias: true, powerPreference: "high-performance" }}
+            camera={{ position: [0, 0.6, 3], fov: 40 }}
+            onCreated={onCreated}
+          >
+            <ambientLight intensity={0.8} />
+            {/* Luz sin sombras dinámicas: las sombras las aporta ContactShadows (mucho más barato). */}
+            <directionalLight position={[3, 5, 3]} intensity={1.4} />
+            <Suspense fallback={null}>
+              <Bounds fit clip observe margin={1.2}>
+                <GuardianModel url={url} />
+              </Bounds>
+              <InvalidateOnLoad />
+            </Suspense>
+            <ContactShadows position={[0, -1, 0]} opacity={0.35} scale={6} blur={2.4} far={3} resolution={256} frames={1} />
+            <OrbitControls makeDefault enablePan={false} minDistance={1.2} maxDistance={6} />
+          </Canvas>
+          <LoadingOverlay label={label} />
+        </>
+      ) : (
+        <div className="flex h-full items-center justify-center rounded-xl bg-background" aria-hidden="true">
+          <div className="h-24 w-20 animate-pulse rounded-2xl bg-border" />
+        </div>
+      )}
     </div>
   );
 }
