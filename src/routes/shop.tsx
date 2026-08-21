@@ -47,7 +47,30 @@ const FRAMES = [
 type FrameId = (typeof FRAMES)[number]["id"];
 
 const ADDONS = [
-  { id: "figure", emoji: "🗿", name: "Figura 3D del Guardián", note: "Coleccionable pintado a mano", price: 29 },
+  {
+    id: "figure-water",
+    emoji: "💧",
+    name: "Figura 3D - Guardián del Agua",
+    note: "Coleccionable pintado a mano",
+    price: 29,
+    sector: "water" as SectorId,
+  },
+  {
+    id: "figure-summit",
+    emoji: "🐐",
+    name: "Figura 3D - Íbice Guardián de Cumbres",
+    note: "Coleccionable pintado a mano",
+    price: 29,
+    sector: "summit" as SectorId,
+  },
+  {
+    id: "figure-culture",
+    emoji: "🥾",
+    name: "Figura 3D - Excursionista Guardián de Tradición",
+    note: "Coleccionable pintado a mano",
+    price: 29,
+    sector: "culture" as SectorId,
+  },
   { id: "magnet", emoji: "🌲", name: "Imán grabado en madera de Lenk", note: "Madera local grabada a láser", price: 9 },
   { id: "passport", emoji: "📜", name: "Pasaporte / Certificado alpino impreso", note: "Con sello oficial de Lenk", price: 15 },
 ] as const;
@@ -105,6 +128,7 @@ function ShopPage() {
   const [frame, setFrame] = useState<FrameId>("m");
   const [selected, setSelected] = useState<string[]>([]);
   const [addons, setAddons] = useState<AddonId[]>([]);
+  const [figureSector, setFigureSector] = useState<SectorId>("water");
   const [paid, setPaid] = useState(false);
   const [pickerIndex, setPickerIndex] = useState<number | null>(null);
   const [giftSectors, setGiftSectors] = useState<SectorId[]>([]);
@@ -127,6 +151,17 @@ function ShopPage() {
 
   const toggleAddon = (id: AddonId) =>
     setAddons((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
+
+  /** Elegir un guardián en el visor 3D marca su figura en los extras. */
+  const selectFigureSector = (sector: SectorId) => {
+    setFigureSector(sector);
+    const addon = ADDONS.find((a) => "sector" in a && a.sector === sector);
+    if (!addon) return;
+    setAddons((prev) => {
+      const others = prev.filter((id) => !id.startsWith("figure-"));
+      return [...others, addon.id];
+    });
+  };
 
   const togglePhoto = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
@@ -402,7 +437,7 @@ function ShopPage() {
           </CardContent>
         </Card>
 
-        <GuardianFigureSelector />
+        <GuardianFigureSelector sector={figureSector} onSectorChange={selectFigureSector} />
 
         <Card>
 
@@ -419,7 +454,11 @@ function ShopPage() {
                   <input
                     type="checkbox"
                     checked={addons.includes(addon.id)}
-                    onChange={() => toggleAddon(addon.id)}
+                    onChange={() =>
+                      "sector" in addon && !addons.includes(addon.id)
+                        ? selectFigureSector(addon.sector)
+                        : toggleAddon(addon.id)
+                    }
                     className="size-4 accent-[var(--lenk-primary)]"
                   />
                   <span className="text-xl" aria-hidden="true">
