@@ -1,5 +1,6 @@
 import figura3dPreview from "@/assets/figura-3d-textura-preview.glb.asset.json";
 import cumbresModel from "@/assets/guardian-cumbres.glb.asset.json";
+import tradicionModel from "@/assets/guardian-tradicion.glb.asset.json";
 
 import type { SectorId } from "./locations";
 
@@ -14,7 +15,7 @@ const GUARDIAN_IMAGES = {
 const GUARDIAN_MODELS = {
   water: figura3dPreview.url,
   summit: cumbresModel.url,
-  culture: "/assets/guardian-tradicion.glb",
+  culture: tradicionModel.url,
 } as const;
 
 
@@ -66,13 +67,13 @@ export const GUARDIANS: Record<SectorId, Guardian> = {
     id: "guardian-tradicion",
     image: GUARDIAN_IMAGES.culture,
     model3d: GUARDIAN_MODELS.culture,
-    name: "Queso Alpino Guardián de Tradición",
+    name: "Excursionista Guardián de Tradición",
     sector: "Ruta Tradición & AlpKultur",
-    description: "Cuña de queso Berner Alpkäse con cencerro, guardián de la cultura de Lenk.",
-    badgeEmoji: "🧀",
+    description: "Excursionista alpino de sombrero rojo suizo, guardián de la cultura y las tradiciones de Lenk.",
+    badgeEmoji: "🥾",
     badgeName: "Insignia de Tradición",
     story:
-      "Curado durante generaciones en los chalets de AlpKultur, el Guardián Berner Alpkäse custodia las canciones, los cencerros y las recetas de La Lenk. Comparte su historia con quien recorre los dos hitos de la tradición del valle.",
+      "Recorre los chalets de AlpKultur desde hace generaciones con su bastón y su sombrero rojo: el Excursionista Guardián de Tradición custodia las canciones, los cencerros y las recetas de La Lenk. Comparte su historia con quien recorre los dos hitos de la tradición del valle.",
   },
 };
 
@@ -80,5 +81,5 @@ export const GUARDIANS: Record<SectorId, Guardian> = {
 export const GUARDIAN_LIST = [
   { sector: "water" as SectorId, emoji: "💧", tab: "Guardián del Agua" },
   { sector: "summit" as SectorId, emoji: "🐐", tab: "Íbice de Cumbres" },
-  { sector: "culture" as SectorId, emoji: "🧀", tab: "Queso de Tradición" },
+  { sector: "culture" as SectorId, emoji: "🥾", tab: "Excursionista de Tradición" },
 ];
