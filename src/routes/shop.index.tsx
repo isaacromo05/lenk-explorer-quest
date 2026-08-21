@@ -23,7 +23,7 @@ import { MobileLayout } from "./-components/mobile-layout";
 import { GuardianFigureSelector } from "./-components/guardian-figure-selector";
 
 
-export const Route = createFileRoute("/shop")({
+export const Route = createFileRoute("/shop/")({
   head: () => ({
     meta: [
       { title: "Lenk Quest — Tienda" },
