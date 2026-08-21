@@ -91,7 +91,6 @@ export function Guardian3DViewer({ url, label, className }: Guardian3DViewerProp
         key={url}
         shadows
         dpr={[1, 1.6]}
-        frameloop="demand"
         gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ position: [0, 0.6, 3], fov: 40 }}
       >
