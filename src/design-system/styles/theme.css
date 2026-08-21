@@ -84,6 +84,14 @@
   --shadow-md: var(--lenk-shadow-md);
   --shadow-lg: var(--lenk-shadow-lg);
 
+  --color-wood: var(--lenk-wood);
+  --color-wood-soft: var(--lenk-wood-soft);
+  --color-wood-foreground: var(--lenk-wood-foreground);
+  --color-bronze: var(--lenk-bronze);
+  --color-bronze-hover: var(--lenk-bronze-hover);
+  --color-bronze-foreground: var(--lenk-bronze-foreground);
+  --color-forest: var(--lenk-forest);
+
   --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
