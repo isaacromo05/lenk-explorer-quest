@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as PassportRouteImport } from './routes/passport'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as Char91__mockupChar93PreviewSplatRouteImport } from './routes/[__mockup].preview.$'
 import { Route as Char91__componentChar93PreviewSplatRouteImport } from './routes/[__component].preview.$'
 
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -32,9 +38,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
-  id: '/shop/',
-  path: '/shop/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ShopRoute,
 } as any)
 const Char91__mockupChar93PreviewSplatRoute =
   Char91__mockupChar93PreviewSplatRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/passport': typeof PassportRoute
   '/scan': typeof ScanRoute
+  '/shop': typeof ShopRouteWithChildren
   '/shop/': typeof ShopIndexRoute
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -70,6 +77,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/passport': typeof PassportRoute
   '/scan': typeof ScanRoute
+  '/shop': typeof ShopRouteWithChildren
   '/shop/': typeof ShopIndexRoute
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -80,6 +88,7 @@ export interface FileRouteTypes {
     | '/'
     | '/passport'
     | '/scan'
+    | '/shop'
     | '/shop/'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/passport'
     | '/scan'
+    | '/shop'
     | '/shop/'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -105,13 +115,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PassportRoute: typeof PassportRoute
   ScanRoute: typeof ScanRoute
-  ShopIndexRoute: typeof ShopIndexRoute
+  ShopRoute: typeof ShopRouteWithChildren
   Char91__componentChar93PreviewSplatRoute: typeof Char91__componentChar93PreviewSplatRoute
   Char91__mockupChar93PreviewSplatRoute: typeof Char91__mockupChar93PreviewSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scan': {
       id: '/scan'
       path: '/scan'
@@ -135,10 +152,10 @@ declare module '@tanstack/react-router' {
     }
     '/shop/': {
       id: '/shop/'
-      path: '/shop'
+      path: '/'
       fullPath: '/shop/'
       preLoaderRoute: typeof ShopIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ShopRoute
     }
     '/__mockup/preview/$': {
       id: '/__mockup/preview/$'
@@ -157,11 +174,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ShopRouteChildren {
+  ShopIndexRoute: typeof ShopIndexRoute
+}
+
+const ShopRouteChildren: ShopRouteChildren = {
+  ShopIndexRoute: ShopIndexRoute,
+}
+
+const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PassportRoute: PassportRoute,
   ScanRoute: ScanRoute,
-  ShopIndexRoute: ShopIndexRoute,
+  ShopRoute: ShopRouteWithChildren,
   Char91__componentChar93PreviewSplatRoute:
     Char91__componentChar93PreviewSplatRoute,
   Char91__mockupChar93PreviewSplatRoute: Char91__mockupChar93PreviewSplatRoute,
