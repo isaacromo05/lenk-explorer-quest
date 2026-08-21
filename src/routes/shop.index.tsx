@@ -212,6 +212,19 @@ function ShopPage() {
           </Text>
         </div>
 
+        <Button
+          className="w-full bg-bronze text-bronze-foreground shadow-md hover:bg-bronze-hover"
+          asChild
+        >
+          <Link to="/shop/configure" className="inline-flex items-center gap-2">
+            <Wand2 className="size-5" aria-hidden="true" />
+            Configurador de recuerdos (3 pasos)
+          </Link>
+        </Button>
+
+        <DebugProgressPanel />
+
+
         <section id="recompensas-desbloqueadas" ref={rewardsRef} className="scroll-mt-20 space-y-3">
           <Heading as="h2" level={3}>
             Tus recompensas desbloqueadas (regalo online)
