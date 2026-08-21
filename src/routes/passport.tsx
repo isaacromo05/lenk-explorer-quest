@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Award, Camera, CheckCircle2, Lock, Mail, ScanLine } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@/design-system";
+import { Badge, Button, Card, CardContent, Heading, Input, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
