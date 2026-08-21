@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, Lock, Mail, ScanLine } from "lucide-react";
+import { Award, Camera, CheckCircle2, Lock, Mail, ScanLine } from "lucide-react";
 import { useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@/design-system";
@@ -9,6 +9,7 @@ import { usePassport } from "@/lib/passport";
 import { GUARDIANS } from "@/lib/guardians";
 
 import { GOLD_PIN, ROUTE_BADGES } from "@/lib/rewards";
+import { DebugProgressPanel } from "./-components/debug-progress-panel";
 import { MobileLayout } from "./-components/mobile-layout";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
 import { PhotoManageModal } from "./-components/photo-manage-modal";
@@ -271,7 +272,7 @@ function PassportPage() {
                     asChild
                   >
                     <Link to="/shop/configure" className="inline-flex items-center gap-2">
-                      <Medal className="size-5" aria-hidden="true" />
+                      <Award className="size-5" aria-hidden="true" />
                       Reclamar Pin Exclusivo — 8,50 CHF
                     </Link>
                   </Button>
