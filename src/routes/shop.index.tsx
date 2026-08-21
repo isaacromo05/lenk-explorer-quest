@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Check, CreditCard, Gift, Lock, ShoppingBag, Truck, X } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check, CreditCard, Gift, Lock, ShoppingBag, Truck, Wand2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -19,6 +19,7 @@ import { LOCATIONS, SECTORS, type SectorId } from "@/lib/locations";
 import { ROUTE_BADGES } from "@/lib/rewards";
 import { GUARDIANS } from "@/lib/guardians";
 import { usePassport } from "@/lib/passport";
+import { DebugProgressPanel } from "./-components/debug-progress-panel";
 import { MobileLayout } from "./-components/mobile-layout";
 import { GuardianFigureSelector } from "./-components/guardian-figure-selector";
 
