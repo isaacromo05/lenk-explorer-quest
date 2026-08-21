@@ -1,14 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, Lock, Mail, ScanLine } from "lucide-react";
+import { Award, Camera, CheckCircle2, Lock, Mail, ScanLine } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Card, CardContent, Heading, Input, Medal, Text } from "@/design-system";
+import { Badge, Button, Card, CardContent, Heading, Input, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
 import { GUARDIANS } from "@/lib/guardians";
 
 import { GOLD_PIN, ROUTE_BADGES } from "@/lib/rewards";
+import { DebugProgressPanel } from "./-components/debug-progress-panel";
 import { MobileLayout } from "./-components/mobile-layout";
 import { PhotoCaptureModal } from "./-components/photo-capture-modal";
 import { PhotoManageModal } from "./-components/photo-manage-modal";
@@ -45,7 +46,7 @@ function PassportPage() {
   return (
     <MobileLayout>
       <div className="space-y-8">
-        <section className="space-y-2">
+        <section className="space-y-3">
           <Heading as="h1" level={2}>
             Mi Pasaporte
           </Heading>
@@ -54,6 +55,28 @@ function PassportPage() {
               ? `${scanned} de ${total} hitos sellados con tu foto.`
               : "Aquí aparecerán tus fotos y sellos de los hitos escaneados."}
           </Text>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-wood">{hydrated ? scanned : 0}/{total} QR escaneados</span>
+              <span className="text-text-muted">
+                {Math.round(((hydrated ? scanned : 0) / total) * 100)}%
+              </span>
+            </div>
+            <div
+              className="h-2.5 w-full overflow-hidden rounded-full bg-border"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={hydrated ? scanned : 0}
+              aria-label="Progreso de QR escaneados"
+            >
+              <div
+                className="h-full rounded-full bg-bronze transition-all"
+                style={{ width: `${((hydrated ? scanned : 0) / total) * 100}%` }}
+              />
+            </div>
+          </div>
+          <DebugProgressPanel />
         </section>
 
         <Card className="border-gold/50">
@@ -145,21 +168,28 @@ function PassportPage() {
 
         <section className="space-y-4">
           <Heading as="h2" level={3}>
-            Vitrina de insignias
+            Insignias digitales
           </Heading>
+          <Text tone="muted" size="sm">
+            Logros gratuitos: completa todos los hitos de una ruta para desbloquear su insignia.
+          </Text>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {(["water", "summit", "culture"] as const).map((sector) => {
               const progress = sectorProgress(sector);
               const complete = hydrated && progress.current === progress.total;
               const badge = ROUTE_BADGES[sector];
+              const missing = progress.total - progress.current;
               return (
-                <Card key={sector} className={cn("p-0", complete && "shadow-md ring-2 ring-gold")}>
+                <Card
+                  key={sector}
+                  className={cn("p-0", complete ? "shadow-md ring-2 ring-bronze" : "opacity-70")}
+                >
                   <button
                     type="button"
                     onClick={() => setRouteSector(sector)}
                     aria-label={`Ver detalles de la ${SECTORS[sector].name}`}
-                    className="flex w-full flex-col items-center rounded-2xl p-4 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="flex w-full flex-col items-center rounded-2xl p-3 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     <span className="relative flex size-20 items-center justify-center">
                       <img
@@ -170,12 +200,15 @@ function PassportPage() {
                         loading="lazy"
                         className={cn(
                           "size-20 object-contain",
-                          complete ? "drop-shadow-md" : "opacity-25 grayscale",
+                          complete ? "drop-shadow-md" : "opacity-40 grayscale",
                         )}
                       />
                       {!complete && (
-                        <Lock
-                          className="absolute size-6 text-text-muted"
+                        <Lock className="absolute size-6 text-text-muted" aria-hidden="true" />
+                      )}
+                      {complete && (
+                        <CheckCircle2
+                          className="absolute -bottom-1 -right-1 size-6 rounded-full bg-surface text-forest"
                           aria-hidden="true"
                         />
                       )}
@@ -183,15 +216,24 @@ function PassportPage() {
                     <Text size="sm" className="mt-2 text-center text-xs font-semibold">
                       {badge.shortName}
                     </Text>
-                    <Text tone="muted" size="sm" className="text-center text-xs">
-                      {progress.current}/{progress.total}
+                    <Text tone="muted" size="sm" className="text-center text-[11px]">
+                      {complete
+                        ? "Desbloqueada"
+                        : `Escanea ${missing} QR para desbloquear`}
                     </Text>
                   </button>
                 </Card>
               );
             })}
+          </div>
+        </section>
 
-            <Card className={cn("p-0", allDone && "shadow-md ring-2 ring-gold")}>
+        <section className="space-y-4">
+          <Heading as="h2" level={3}>
+            Pin exclusivo
+          </Heading>
+          <Card className={cn("border-bronze/50", allDone && "shadow-md ring-2 ring-bronze")}>
+            <CardContent className="flex flex-col items-center gap-3 py-6">
               <button
                 type="button"
                 onClick={() => allDone && setPinOpen(true)}
@@ -199,44 +241,50 @@ function PassportPage() {
                 aria-label={
                   allDone
                     ? `Ver el pin ${GOLD_PIN.name} en 3D`
-                    : `Pin ${GOLD_PIN.name} bloqueado — completa los 8 hitos`
+                    : `Pin ${GOLD_PIN.name} bloqueado — completa los 8 QR`
                 }
-                className="flex w-full flex-col items-center rounded-2xl p-4 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed"
+                className="relative flex size-28 items-center justify-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed"
               >
-                <span className="relative flex size-20 items-center justify-center">
-                  <img
-                    src={GOLD_PIN.front.image}
-                    alt={allDone ? `Pin ${GOLD_PIN.name}` : `Pin ${GOLD_PIN.name} bloqueado`}
-                    width={512}
-                    height={512}
-                    loading="lazy"
-                    className={cn(
-                      "size-20 object-contain",
-                      allDone ? "drop-shadow-md" : "opacity-25 grayscale",
-                    )}
-                  />
-                  {!allDone && <Lock className="absolute size-6 text-text-muted" aria-hidden="true" />}
-                </span>
-                <Text size="sm" className="mt-2 text-center text-xs font-semibold">
-                  {GOLD_PIN.name}
-                </Text>
-                <Text tone="muted" size="sm" className="text-center text-xs">
-                  {allDone ? GOLD_PIN.serial : `${scanned}/${total} hitos`}
-                </Text>
+                <img
+                  src={GOLD_PIN.front.image}
+                  alt={allDone ? `Pin ${GOLD_PIN.name}` : `Silueta del pin ${GOLD_PIN.name}`}
+                  width={512}
+                  height={512}
+                  loading="lazy"
+                  className={cn(
+                    "size-28 object-contain",
+                    allDone
+                      ? "drop-shadow-[0_0_16px_var(--lenk-gold)]"
+                      : "opacity-30 grayscale",
+                  )}
+                />
+                {!allDone && <Lock className="absolute size-7 text-text-muted" aria-hidden="true" />}
               </button>
-            </Card>
-          </div>
-          {allDone && (
-            <Card className="shadow-md">
-              <CardContent className="flex items-center gap-4">
-                <Medal label="Lenk Gold Edition">🏅</Medal>
-                <Text size="sm">
-                  ¡Has completado los 8 hitos del valle! Pulsa el Pin Supremo para verlo en 3D y
-                  obtener tu credencial digital de canje.
+              <Text className="text-center font-semibold">{GOLD_PIN.name}</Text>
+              {allDone ? (
+                <>
+                  <Text tone="muted" size="sm" className="text-center">
+                    ¡Has completado los 8 QR del valle! Serial {GOLD_PIN.serial}.
+                  </Text>
+                  <Button
+                    size="lg"
+                    className="w-full bg-bronze text-bronze-foreground shadow-md hover:bg-bronze-hover"
+                    asChild
+                  >
+                    <Link to="/shop/configure" className="inline-flex items-center gap-2">
+                      <Award className="size-5" aria-hidden="true" />
+                      Reclamar Pin Exclusivo — 8,50 CHF
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <Text tone="muted" size="sm" className="text-center">
+                  Completa los 8 QR para desbloquear el Pin Exclusivo ({hydrated ? scanned : 0}/
+                  {total}).
                 </Text>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </section>
 
 
