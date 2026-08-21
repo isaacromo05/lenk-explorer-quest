@@ -14,6 +14,7 @@ import { Route as ScanRouteImport } from './routes/scan'
 import { Route as PassportRouteImport } from './routes/passport'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
+import { Route as ShopConfigureRouteImport } from './routes/shop.configure'
 import { Route as Char91__mockupChar93PreviewSplatRouteImport } from './routes/[__mockup].preview.$'
 import { Route as Char91__componentChar93PreviewSplatRouteImport } from './routes/[__component].preview.$'
 
@@ -42,6 +43,11 @@ const ShopIndexRoute = ShopIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopConfigureRoute = ShopConfigureRouteImport.update({
+  id: '/configure',
+  path: '/configure',
+  getParentRoute: () => ShopRoute,
+} as any)
 const Char91__mockupChar93PreviewSplatRoute =
   Char91__mockupChar93PreviewSplatRouteImport.update({
     id: '/__mockup/preview/$',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/passport': typeof PassportRoute
   '/scan': typeof ScanRoute
   '/shop': typeof ShopRouteWithChildren
+  '/shop/configure': typeof ShopConfigureRoute
   '/shop/': typeof ShopIndexRoute
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/passport': typeof PassportRoute
   '/scan': typeof ScanRoute
+  '/shop/configure': typeof ShopConfigureRoute
   '/shop': typeof ShopIndexRoute
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/passport': typeof PassportRoute
   '/scan': typeof ScanRoute
   '/shop': typeof ShopRouteWithChildren
+  '/shop/configure': typeof ShopConfigureRoute
   '/shop/': typeof ShopIndexRoute
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/passport'
     | '/scan'
     | '/shop'
+    | '/shop/configure'
     | '/shop/'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/'
     | '/passport'
     | '/scan'
+    | '/shop/configure'
     | '/shop'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/passport'
     | '/scan'
     | '/shop'
+    | '/shop/configure'
     | '/shop/'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -157,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopIndexRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/shop/configure': {
+      id: '/shop/configure'
+      path: '/configure'
+      fullPath: '/shop/configure'
+      preLoaderRoute: typeof ShopConfigureRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/__mockup/preview/$': {
       id: '/__mockup/preview/$'
       path: '/__mockup/preview/$'
@@ -175,10 +194,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface ShopRouteChildren {
+  ShopConfigureRoute: typeof ShopConfigureRoute
   ShopIndexRoute: typeof ShopIndexRoute
 }
 
 const ShopRouteChildren: ShopRouteChildren = {
+  ShopConfigureRoute: ShopConfigureRoute,
   ShopIndexRoute: ShopIndexRoute,
 }
 
