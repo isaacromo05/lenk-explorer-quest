@@ -45,7 +45,7 @@ function PassportPage() {
   return (
     <MobileLayout>
       <div className="space-y-8">
-        <section className="space-y-2">
+        <section className="space-y-3">
           <Heading as="h1" level={2}>
             Mi Pasaporte
           </Heading>
@@ -54,6 +54,28 @@ function PassportPage() {
               ? `${scanned} de ${total} hitos sellados con tu foto.`
               : "Aquí aparecerán tus fotos y sellos de los hitos escaneados."}
           </Text>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-wood">{hydrated ? scanned : 0}/{total} QR escaneados</span>
+              <span className="text-text-muted">
+                {Math.round(((hydrated ? scanned : 0) / total) * 100)}%
+              </span>
+            </div>
+            <div
+              className="h-2.5 w-full overflow-hidden rounded-full bg-border"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={hydrated ? scanned : 0}
+              aria-label="Progreso de QR escaneados"
+            >
+              <div
+                className="h-full rounded-full bg-bronze transition-all"
+                style={{ width: `${((hydrated ? scanned : 0) / total) * 100}%` }}
+              />
+            </div>
+          </div>
+          <DebugProgressPanel />
         </section>
 
         <Card className="border-gold/50">
