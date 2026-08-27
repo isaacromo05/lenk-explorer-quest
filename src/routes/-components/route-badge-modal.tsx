@@ -11,6 +11,12 @@ interface RouteBadgeModalProps {
   onClose: () => void;
 }
 
+const BADGE_IMAGES: Record<SectorId, string> = {
+  water: "/insignia-agua.png",
+  summit: "/insignia-cumbres.png",
+  culture: "/insignia.tradicion.png",
+};
+
 const dateFormatter = new Intl.DateTimeFormat("es-ES", {
   day: "2-digit",
   month: "short",
