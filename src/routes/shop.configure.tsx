@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, Lock, ShoppingCart } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, Check, ImagePlus, Lock, ShoppingCart, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/shop/configure")({
       { property: "og:title", content: "Lenk Quest — Configura tu recuerdo" },
       {
         property: "og:description",
-        content: "Elige base, grabado en madera y confirma tu recuerdo alpino de Lenk.",
+        content: "Elige base, sube tus fotos, el grabado en madera y confirma tu recuerdo alpino de Lenk.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,6 +37,8 @@ interface BaseProduct {
   note: string;
   emoji: string;
   price: number;
+  /** Frames need the photo-collage step; figures don't. */
+  needsPhotos?: boolean;
 }
 
 const BASE_PRODUCTS: BaseProduct[] = [
@@ -46,6 +48,7 @@ const BASE_PRODUCTS: BaseProduct[] = [
     note: "Marco de madera de abeto con tu collage de hitos.",
     emoji: "🖼️",
     price: 39,
+    needsPhotos: true,
   },
   {
     id: "figure",
@@ -91,7 +94,23 @@ const ENGRAVINGS: Engraving[] = [
 
 const chf = (value: number) => `CHF ${value.toFixed(2)}`;
 
-const STEPS = ["Objeto base", "Grabado en madera", "Resumen"] as const;
+/** Collage cells: one large central photo plus four smaller ones around it. */
+const COLLAGE_CELLS = [
+  { id: "top-left", area: "1 / 1 / 2 / 2", label: "Foto superior izquierda" },
+  { id: "top-right", area: "1 / 3 / 2 / 4", label: "Foto superior derecha" },
+  { id: "center", area: "1 / 2 / 3 / 3", label: "Foto principal" },
+  { id: "bottom-left", area: "2 / 1 / 3 / 2", label: "Foto inferior izquierda" },
+  { id: "bottom-right", area: "2 / 3 / 3 / 4", label: "Foto inferior derecha" },
+] as const;
+
+type StepId = "base" | "photos" | "engraving" | "summary";
+
+const STEP_LABELS: Record<StepId, string> = {
+  base: "Objeto base",
+  photos: "Tus Fotos",
+  engraving: "Grabado en madera",
+  summary: "Resumen",
+};
 
 function ConfigurePage() {
   const { hydrated, sectorProgress } = usePassport();
@@ -99,10 +118,18 @@ function ConfigurePage() {
   const [baseId, setBaseId] = useState(BASE_PRODUCTS[0].id);
   const [engravingId, setEngravingId] = useState("none");
   const [added, setAdded] = useState(false);
+  const [photos, setPhotos] = useState<Record<string, string>>({});
+  const inputsRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const base = BASE_PRODUCTS.find((p) => p.id === baseId)!;
   const engraving = ENGRAVINGS.find((e) => e.id === engravingId)!;
   const total = base.price + engraving.price;
+
+  const steps: StepId[] = base.needsPhotos
+    ? ["base", "photos", "engraving", "summary"]
+    : ["base", "engraving", "summary"];
+  const currentStep = steps[Math.min(step, steps.length - 1)];
+  const photoCount = Object.values(photos).filter(Boolean).length;
 
   const badgeUnlocked = useMemo(
     () => (sector: SectorId) => {
@@ -111,6 +138,34 @@ function ConfigurePage() {
     },
     [hydrated, sectorProgress],
   );
+
+  const selectBase = (id: string) => {
+    setBaseId(id);
+    setStep(0);
+  };
+
+  const handleFile = (cellId: string, file: File | undefined) => {
+    if (!file) return;
+    setPhotos((prev) => {
+      const previous = prev[cellId];
+      if (previous) URL.revokeObjectURL(previous);
+      return { ...prev, [cellId]: URL.createObjectURL(file) };
+    });
+  };
+
+  const removePhoto = (cellId: string) => {
+    setPhotos((prev) => {
+      const previous = prev[cellId];
+      if (previous) URL.revokeObjectURL(previous);
+      const next = { ...prev };
+      delete next[cellId];
+      return next;
+    });
+    const input = inputsRef.current[cellId];
+    if (input) input.value = "";
+  };
+
+  const goNext = () => setStep((s) => Math.min(steps.length - 1, s + 1));
 
   return (
     <MobileLayout>
@@ -128,18 +183,17 @@ function ConfigurePage() {
             Configura tu recuerdo
           </Heading>
           <Text tone="muted">
-            Tres pasos: elige el objeto, el grabado en madera y confirma tu pedido.
+            {base.needsPhotos
+              ? "Elige el objeto, sube tus fotos, el grabado en madera y confirma tu pedido."
+              : "Tres pasos: elige el objeto, el grabado en madera y confirma tu pedido."}
           </Text>
         </section>
 
         <ol className="flex items-center gap-2">
-          {STEPS.map((label, index) => (
-            <li key={label} className="flex flex-1 flex-col gap-1">
+          {steps.map((id, index) => (
+            <li key={id} className="flex flex-1 flex-col gap-1">
               <span
-                className={cn(
-                  "h-1.5 rounded-full",
-                  index <= step ? "bg-bronze" : "bg-border",
-                )}
+                className={cn("h-1.5 rounded-full", index <= step ? "bg-bronze" : "bg-border")}
                 aria-hidden="true"
               />
               <span
@@ -148,13 +202,13 @@ function ConfigurePage() {
                   index === step ? "text-wood" : "text-text-muted",
                 )}
               >
-                {index + 1}. {label}
+                {index + 1}. {STEP_LABELS[id]}
               </span>
             </li>
           ))}
         </ol>
 
-        {step === 0 && (
+        {currentStep === "base" && (
           <section className="space-y-3">
             <Heading as="h2" level={4}>
               Paso 1 · Objeto base
@@ -168,7 +222,7 @@ function ConfigurePage() {
                 >
                   <button
                     type="button"
-                    onClick={() => setBaseId(product.id)}
+                    onClick={() => selectBase(product.id)}
                     aria-pressed={selected}
                     className="flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
@@ -188,10 +242,90 @@ function ConfigurePage() {
           </section>
         )}
 
-        {step === 1 && (
+        {currentStep === "photos" && (
           <section className="space-y-3">
             <Heading as="h2" level={4}>
-              Paso 2 · Grabado en madera
+              Paso 2 · Tus Fotos
+            </Heading>
+            <Text tone="muted" size="sm">
+              Toca cada hueco del marco para elegir una foto de tu aventura. Necesitas al menos una.
+            </Text>
+
+            <Card className="border-wood/30 shadow-md">
+              <CardContent className="py-5">
+                <div
+                  className="grid gap-2 rounded-xl border-4 border-wood/70 bg-wood/10 p-3"
+                  style={{
+                    gridTemplateColumns: "1fr 1.4fr 1fr",
+                    gridTemplateRows: "1fr 1fr",
+                  }}
+                >
+                  {COLLAGE_CELLS.map((cell) => {
+                    const src = photos[cell.id];
+                    return (
+                      <div key={cell.id} className="relative" style={{ gridArea: cell.area }}>
+                        <input
+                          ref={(el) => {
+                            inputsRef.current[cell.id] = el;
+                          }}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFile(cell.id, e.target.files?.[0])}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => inputsRef.current[cell.id]?.click()}
+                          aria-label={src ? `Cambiar ${cell.label}` : `Añadir ${cell.label}`}
+                          className={cn(
+                            "flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-bronze/60 bg-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                            src && "border-solid border-bronze",
+                          )}
+                        >
+                          {src ? (
+                            <img
+                              src={src}
+                              alt={cell.label}
+                              className="size-full object-cover"
+                            />
+                          ) : (
+                            <ImagePlus className="size-6 text-bronze" aria-hidden="true" />
+                          )}
+                        </button>
+                        {src && (
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(cell.id)}
+                            aria-label={`Quitar ${cell.label}`}
+                            className="absolute -right-1 -top-1 rounded-full bg-wood p-1 text-wood-foreground shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          >
+                            <X className="size-3" aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <Badge variant="outline">{photoCount}/5 fotos</Badge>
+                  <Button
+                    className="bg-bronze text-bronze-foreground hover:bg-bronze-hover"
+                    onClick={goNext}
+                    disabled={photoCount === 0}
+                  >
+                    Continuar al Grabado
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {currentStep === "engraving" && (
+          <section className="space-y-3">
+            <Heading as="h2" level={4}>
+              Paso {steps.indexOf("engraving") + 1} · Grabado en madera
             </Heading>
             <Text tone="muted" size="sm">
               Los grabados temáticos requieren la insignia digital de esa ruta.
@@ -248,13 +382,40 @@ function ConfigurePage() {
           </section>
         )}
 
-        {step === 2 && (
+        {currentStep === "summary" && (
           <section className="space-y-3">
             <Heading as="h2" level={4}>
-              Paso 3 · Resumen
+              Paso {steps.length} · Resumen
             </Heading>
             <Card className="border-bronze/50 shadow-md">
               <CardContent className="space-y-3 py-5">
+                {base.needsPhotos && photoCount > 0 && (
+                  <div className="space-y-2">
+                    <Text tone="muted" size="sm">
+                      Tu collage ({photoCount} {photoCount === 1 ? "foto" : "fotos"})
+                    </Text>
+                    <div
+                      className="grid w-40 gap-1 rounded-lg border-2 border-wood/70 bg-wood/10 p-1.5"
+                      style={{ gridTemplateColumns: "1fr 1.4fr 1fr", gridTemplateRows: "1fr 1fr" }}
+                    >
+                      {COLLAGE_CELLS.map((cell) => (
+                        <div
+                          key={cell.id}
+                          style={{ gridArea: cell.area }}
+                          className="aspect-square overflow-hidden rounded border border-bronze/40 bg-surface"
+                        >
+                          {photos[cell.id] && (
+                            <img
+                              src={photos[cell.id]}
+                              alt={cell.label}
+                              className="size-full object-cover"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-text-muted">{base.name}</dt>
@@ -298,8 +459,10 @@ function ConfigurePage() {
           </Button>
           <Button
             className="flex-1"
-            onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-            disabled={step === STEPS.length - 1}
+            onClick={goNext}
+            disabled={
+              step === steps.length - 1 || (currentStep === "photos" && photoCount === 0)
+            }
           >
             Siguiente
           </Button>
