@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, ImagePlus, Lock, ShoppingCart, X } from "lucide-react";
+import { ArrowLeft, Check, ImagePlus, Lock, Plus, ShoppingCart, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Text } from "@/design-system";
@@ -10,7 +10,12 @@ import { usePassport } from "@/lib/passport";
 import { DebugProgressPanel } from "./-components/debug-progress-panel";
 import { MobileLayout } from "./-components/mobile-layout";
 
+type ProductId = "frame" | "figure";
+
 export const Route = createFileRoute("/shop/configure")({
+  validateSearch: (search: Record<string, unknown>): { product: ProductId } => ({
+    product: search.product === "figure" ? "figure" : "frame",
+  }),
   head: () => ({
     meta: [
       { title: "Lenk Quest — Configura tu recuerdo" },
@@ -22,7 +27,7 @@ export const Route = createFileRoute("/shop/configure")({
       { property: "og:title", content: "Lenk Quest — Configura tu recuerdo" },
       {
         property: "og:description",
-        content: "Elige base, sube tus fotos, el grabado en madera y confirma tu recuerdo alpino de Lenk.",
+        content: "Sube tus fotos, elige los grabados en madera y confirma tu recuerdo alpino de Lenk.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,7 +37,7 @@ export const Route = createFileRoute("/shop/configure")({
 });
 
 interface BaseProduct {
-  id: string;
+  id: ProductId;
   name: string;
   note: string;
   emoji: string;
@@ -41,8 +46,8 @@ interface BaseProduct {
   needsPhotos?: boolean;
 }
 
-const BASE_PRODUCTS: BaseProduct[] = [
-  {
+const BASE_PRODUCTS: Record<ProductId, BaseProduct> = {
+  frame: {
     id: "frame",
     name: "Marco de Recuerdos",
     note: "Marco de madera de abeto con tu collage de hitos.",
@@ -50,14 +55,14 @@ const BASE_PRODUCTS: BaseProduct[] = [
     price: 39,
     needsPhotos: true,
   },
-  {
+  figure: {
     id: "figure",
     name: "Figura 3D del Guardián",
     note: "Figura coleccionable impresa en 3D sobre peana de madera.",
     emoji: "🗿",
     price: 29,
   },
-];
+};
 
 interface Engraving {
   id: string;
@@ -68,7 +73,6 @@ interface Engraving {
 }
 
 const ENGRAVINGS: Engraving[] = [
-  { id: "none", name: "Base estándar (sin grabado)", note: "Madera natural sin grabar.", price: 0 },
   {
     id: "water",
     name: "Grabado Ruta del Agua",
@@ -94,42 +98,72 @@ const ENGRAVINGS: Engraving[] = [
 
 const chf = (value: number) => `CHF ${value.toFixed(2)}`;
 
-/** Collage cells: one large central photo plus four smaller ones around it. */
-const COLLAGE_CELLS = [
-  { id: "top-left", area: "1 / 1 / 2 / 2", label: "Foto superior izquierda" },
-  { id: "top-right", area: "1 / 3 / 2 / 4", label: "Foto superior derecha" },
-  { id: "center", area: "1 / 2 / 3 / 3", label: "Foto principal" },
-  { id: "bottom-left", area: "2 / 1 / 3 / 2", label: "Foto inferior izquierda" },
-  { id: "bottom-right", area: "2 / 3 / 3 / 4", label: "Foto inferior derecha" },
-] as const;
+const MAX_PHOTOS = 8;
 
-type StepId = "base" | "photos" | "engraving" | "summary";
+/** Adaptive collage layout: columns + per-cell spans so 1–8 photos always fill the frame. */
+function collageLayout(count: number): { cols: number; span: (index: number) => string } {
+  switch (count) {
+    case 1:
+      return { cols: 1, span: () => "col-span-1 row-span-1" };
+    case 2:
+      return { cols: 2, span: () => "col-span-1" };
+    case 3:
+      return {
+        cols: 2,
+        span: (i) => (i === 0 ? "col-span-2 aspect-[2/1]" : "col-span-1"),
+      };
+    case 4:
+      return { cols: 2, span: () => "col-span-1" };
+    case 5:
+      return {
+        cols: 6,
+        span: (i) => (i < 2 ? "col-span-3" : "col-span-2"),
+      };
+    case 6:
+      return { cols: 3, span: () => "col-span-1" };
+    case 7:
+      return {
+        cols: 6,
+        span: (i) => (i < 1 ? "col-span-6 aspect-[3/1]" : i < 3 ? "col-span-3" : "col-span-2"),
+      };
+    default:
+      return { cols: 4, span: () => "col-span-1" };
+  }
+}
+
+type StepId = "photos" | "engraving" | "summary";
 
 const STEP_LABELS: Record<StepId, string> = {
-  base: "Objeto base",
   photos: "Tus Fotos",
   engraving: "Grabado en madera",
   summary: "Resumen",
 };
 
+interface Photo {
+  id: string;
+  url: string;
+}
+
 function ConfigurePage() {
+  const { product } = Route.useSearch();
   const { hydrated, sectorProgress } = usePassport();
   const [step, setStep] = useState(0);
-  const [baseId, setBaseId] = useState(BASE_PRODUCTS[0].id);
-  const [engravingId, setEngravingId] = useState("none");
+  const [engravingIds, setEngravingIds] = useState<string[]>([]);
   const [added, setAdded] = useState(false);
-  const [photos, setPhotos] = useState<Record<string, string>>({});
-  const inputsRef = useRef<Record<string, HTMLInputElement | null>>({});
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const base = BASE_PRODUCTS.find((p) => p.id === baseId)!;
-  const engraving = ENGRAVINGS.find((e) => e.id === engravingId)!;
-  const total = base.price + engraving.price;
+  const base = BASE_PRODUCTS[product];
+  const selectedEngravings = ENGRAVINGS.filter((e) => engravingIds.includes(e.id));
+  const engravingTotal = selectedEngravings.reduce((sum, e) => sum + e.price, 0);
+  const total = base.price + engravingTotal;
 
   const steps: StepId[] = base.needsPhotos
-    ? ["base", "photos", "engraving", "summary"]
-    : ["base", "engraving", "summary"];
+    ? ["photos", "engraving", "summary"]
+    : ["engraving", "summary"];
   const currentStep = steps[Math.min(step, steps.length - 1)];
-  const photoCount = Object.values(photos).filter(Boolean).length;
+  const photoCount = photos.length;
+  const layout = collageLayout(Math.max(photoCount, 1));
 
   const badgeUnlocked = useMemo(
     () => (sector: SectorId) => {
@@ -139,31 +173,31 @@ function ConfigurePage() {
     [hydrated, sectorProgress],
   );
 
-  const selectBase = (id: string) => {
-    setBaseId(id);
-    setStep(0);
+  const addPhotos = (files: FileList | null) => {
+    if (!files?.length) return;
+    setPhotos((prev) => {
+      const room = MAX_PHOTOS - prev.length;
+      const next = Array.from(files)
+        .slice(0, room)
+        .map((file) => ({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          url: URL.createObjectURL(file),
+        }));
+      return [...prev, ...next];
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleFile = (cellId: string, file: File | undefined) => {
-    if (!file) return;
+  const removePhoto = (id: string) => {
     setPhotos((prev) => {
-      const previous = prev[cellId];
-      if (previous) URL.revokeObjectURL(previous);
-      return { ...prev, [cellId]: URL.createObjectURL(file) };
+      const target = prev.find((p) => p.id === id);
+      if (target) URL.revokeObjectURL(target.url);
+      return prev.filter((p) => p.id !== id);
     });
   };
 
-  const removePhoto = (cellId: string) => {
-    setPhotos((prev) => {
-      const previous = prev[cellId];
-      if (previous) URL.revokeObjectURL(previous);
-      const next = { ...prev };
-      delete next[cellId];
-      return next;
-    });
-    const input = inputsRef.current[cellId];
-    if (input) input.value = "";
-  };
+  const toggleEngraving = (id: string) =>
+    setEngravingIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const goNext = () => setStep((s) => Math.min(steps.length - 1, s + 1));
 
@@ -183,9 +217,10 @@ function ConfigurePage() {
             Configura tu recuerdo
           </Heading>
           <Text tone="muted">
-            {base.needsPhotos
-              ? "Elige el objeto, sube tus fotos, el grabado en madera y confirma tu pedido."
-              : "Tres pasos: elige el objeto, el grabado en madera y confirma tu pedido."}
+            <span className="mr-1" aria-hidden="true">
+              {base.emoji}
+            </span>
+            {base.name} · {base.note}
           </Text>
         </section>
 
@@ -208,107 +243,73 @@ function ConfigurePage() {
           ))}
         </ol>
 
-        {currentStep === "base" && (
-          <section className="space-y-3">
-            <Heading as="h2" level={4}>
-              Paso 1 · Objeto base
-            </Heading>
-            {BASE_PRODUCTS.map((product) => {
-              const selected = product.id === baseId;
-              return (
-                <Card
-                  key={product.id}
-                  className={cn("p-0", selected && "ring-2 ring-bronze shadow-md")}
-                >
-                  <button
-                    type="button"
-                    onClick={() => selectBase(product.id)}
-                    aria-pressed={selected}
-                    className="flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                  >
-                    <span className="text-3xl" aria-hidden="true">
-                      {product.emoji}
-                    </span>
-                    <span className="flex-1">
-                      <span className="block text-sm font-semibold text-text">{product.name}</span>
-                      <span className="block text-xs text-text-muted">{product.note}</span>
-                    </span>
-                    <span className="text-sm font-semibold text-wood">{chf(product.price)}</span>
-                    {selected && <Check className="size-5 text-forest" aria-hidden="true" />}
-                  </button>
-                </Card>
-              );
-            })}
-          </section>
-        )}
-
         {currentStep === "photos" && (
           <section className="space-y-3">
             <Heading as="h2" level={4}>
-              Paso 2 · Tus Fotos
+              Paso 1 · Tus Fotos
             </Heading>
             <Text tone="muted" size="sm">
-              Toca cada hueco del marco para elegir una foto de tu aventura. Necesitas al menos una.
+              Añade entre 1 y {MAX_PHOTOS} fotos de tu aventura. El collage se reorganiza solo para
+              llenar el marco.
             </Text>
 
             <Card className="border-wood/30 shadow-md">
               <CardContent className="py-5">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => addPhotos(e.target.files)}
+                />
                 <div
                   className="grid gap-2 rounded-xl border-4 border-wood/70 bg-wood/10 p-3"
-                  style={{
-                    gridTemplateColumns: "1fr 1.4fr 1fr",
-                    gridTemplateRows: "1fr 1fr",
-                  }}
+                  style={{ gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))` }}
                 >
-                  {COLLAGE_CELLS.map((cell) => {
-                    const src = photos[cell.id];
-                    return (
-                      <div key={cell.id} className="relative" style={{ gridArea: cell.area }}>
-                        <input
-                          ref={(el) => {
-                            inputsRef.current[cell.id] = el;
-                          }}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFile(cell.id, e.target.files?.[0])}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => inputsRef.current[cell.id]?.click()}
-                          aria-label={src ? `Cambiar ${cell.label}` : `Añadir ${cell.label}`}
-                          className={cn(
-                            "flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-bronze/60 bg-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                            src && "border-solid border-bronze",
-                          )}
-                        >
-                          {src ? (
-                            <img
-                              src={src}
-                              alt={cell.label}
-                              className="size-full object-cover"
-                            />
-                          ) : (
-                            <ImagePlus className="size-6 text-bronze" aria-hidden="true" />
-                          )}
-                        </button>
-                        {src && (
-                          <button
-                            type="button"
-                            onClick={() => removePhoto(cell.id)}
-                            aria-label={`Quitar ${cell.label}`}
-                            className="absolute -right-1 -top-1 rounded-full bg-wood p-1 text-wood-foreground shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                          >
-                            <X className="size-3" aria-hidden="true" />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {photos.map((photo, index) => (
+                    <div key={photo.id} className={cn("relative", layout.span(index))}>
+                      <img
+                        src={photo.url}
+                        alt={`Foto ${index + 1} del collage`}
+                        className="size-full aspect-square rounded-lg border-2 border-bronze object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(photo.id)}
+                        aria-label={`Quitar foto ${index + 1}`}
+                        className="absolute -right-1 -top-1 rounded-full bg-wood p-1 text-wood-foreground shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      >
+                        <X className="size-3" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                  {photoCount < MAX_PHOTOS && (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      aria-label="Añadir foto"
+                      className={cn(
+                        "flex aspect-square w-full items-center justify-center gap-1 rounded-lg border-2 border-dashed border-bronze/60 bg-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                        photoCount === 0 && "col-span-full",
+                      )}
+                    >
+                      {photoCount === 0 ? (
+                        <>
+                          <ImagePlus className="size-6 text-bronze" aria-hidden="true" />
+                          <span className="text-xs font-semibold text-bronze">Añadir fotos</span>
+                        </>
+                      ) : (
+                        <Plus className="size-6 text-bronze" aria-hidden="true" />
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <Badge variant="outline">{photoCount}/5 fotos</Badge>
+                  <Badge variant="outline">
+                    {photoCount}/{MAX_PHOTOS} fotos
+                  </Badge>
                   <Button
                     className="bg-bronze text-bronze-foreground hover:bg-bronze-hover"
                     onClick={goNext}
@@ -328,11 +329,12 @@ function ConfigurePage() {
               Paso {steps.indexOf("engraving") + 1} · Grabado en madera
             </Heading>
             <Text tone="muted" size="sm">
-              Los grabados temáticos requieren la insignia digital de esa ruta.
+              Puedes combinar varios grabados. Los temáticos requieren la insignia digital de esa
+              ruta.
             </Text>
             {ENGRAVINGS.map((option) => {
               const locked = option.sector ? !badgeUnlocked(option.sector) : false;
-              const selected = option.id === engravingId;
+              const selected = engravingIds.includes(option.id);
               const sectorName = option.sector ? SECTORS[option.sector].name : null;
               const missing = option.sector
                 ? locationsBySector(option.sector).length - sectorProgress(option.sector).current
@@ -349,8 +351,9 @@ function ConfigurePage() {
                   <button
                     type="button"
                     disabled={locked}
-                    onClick={() => setEngravingId(option.id)}
-                    aria-pressed={selected}
+                    onClick={() => toggleEngraving(option.id)}
+                    role="checkbox"
+                    aria-checked={selected}
                     title={
                       locked
                         ? `Necesitas la insignia de la ${sectorName} — te faltan ${missing} QR`
@@ -358,6 +361,17 @@ function ConfigurePage() {
                     }
                     className="flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:grayscale"
                   >
+                    <span
+                      className={cn(
+                        "flex size-5 shrink-0 items-center justify-center rounded-md border-2",
+                        selected && !locked
+                          ? "border-forest bg-forest text-white"
+                          : "border-border bg-surface",
+                      )}
+                      aria-hidden="true"
+                    >
+                      {selected && !locked && <Check className="size-3.5" />}
+                    </span>
                     <span className="flex-1">
                       <span className="flex items-center gap-2 text-sm font-semibold text-text">
                         {option.name}
@@ -369,12 +383,7 @@ function ConfigurePage() {
                           : option.note}
                       </span>
                     </span>
-                    <span className="text-sm font-semibold text-wood">
-                      {option.price === 0 ? "+0 CHF" : `+${option.price} CHF`}
-                    </span>
-                    {selected && !locked && (
-                      <Check className="size-5 text-forest" aria-hidden="true" />
-                    )}
+                    <span className="text-sm font-semibold text-wood">+{option.price} CHF</span>
                   </button>
                 </Card>
               );
@@ -396,21 +405,21 @@ function ConfigurePage() {
                     </Text>
                     <div
                       className="grid w-40 gap-1 rounded-lg border-2 border-wood/70 bg-wood/10 p-1.5"
-                      style={{ gridTemplateColumns: "1fr 1.4fr 1fr", gridTemplateRows: "1fr 1fr" }}
+                      style={{ gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))` }}
                     >
-                      {COLLAGE_CELLS.map((cell) => (
+                      {photos.map((photo, index) => (
                         <div
-                          key={cell.id}
-                          style={{ gridArea: cell.area }}
-                          className="aspect-square overflow-hidden rounded border border-bronze/40 bg-surface"
-                        >
-                          {photos[cell.id] && (
-                            <img
-                              src={photos[cell.id]}
-                              alt={cell.label}
-                              className="size-full object-cover"
-                            />
+                          key={photo.id}
+                          className={cn(
+                            "overflow-hidden rounded border border-bronze/40 bg-surface",
+                            layout.span(index),
                           )}
+                        >
+                          <img
+                            src={photo.url}
+                            alt={`Foto ${index + 1} del collage`}
+                            className="size-full aspect-square object-cover"
+                          />
                         </div>
                       ))}
                     </div>
@@ -421,10 +430,18 @@ function ConfigurePage() {
                     <dt className="text-text-muted">{base.name}</dt>
                     <dd className="font-semibold text-text">{chf(base.price)}</dd>
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-text-muted">{engraving.name}</dt>
-                    <dd className="font-semibold text-text">{chf(engraving.price)}</dd>
-                  </div>
+                  {selectedEngravings.length === 0 && (
+                    <div className="flex justify-between">
+                      <dt className="text-text-muted">Sin grabado</dt>
+                      <dd className="font-semibold text-text">{chf(0)}</dd>
+                    </div>
+                  )}
+                  {selectedEngravings.map((option) => (
+                    <div key={option.id} className="flex justify-between">
+                      <dt className="text-text-muted">{option.name}</dt>
+                      <dd className="font-semibold text-text">{chf(option.price)}</dd>
+                    </div>
+                  ))}
                   <div className="flex justify-between border-t border-border pt-2 text-base">
                     <dt className="font-bold text-wood">Total</dt>
                     <dd className="font-bold text-wood">{chf(total)}</dd>
@@ -440,7 +457,11 @@ function ConfigurePage() {
                 </Button>
                 {added && (
                   <Text tone="muted" size="sm">
-                    ✅ {base.name} con {engraving.name.toLowerCase()} añadido al carrito.
+                    ✅ {base.name}
+                    {selectedEngravings.length > 0
+                      ? ` con ${selectedEngravings.length} grabado${selectedEngravings.length === 1 ? "" : "s"}`
+                      : ""}{" "}
+                    añadido al carrito.
                   </Text>
                 )}
               </CardContent>
@@ -460,9 +481,7 @@ function ConfigurePage() {
           <Button
             className="flex-1"
             onClick={goNext}
-            disabled={
-              step === steps.length - 1 || (currentStep === "photos" && photoCount === 0)
-            }
+            disabled={step === steps.length - 1 || (currentStep === "photos" && photoCount === 0)}
           >
             Siguiente
           </Button>
