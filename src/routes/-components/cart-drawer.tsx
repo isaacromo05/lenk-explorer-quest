@@ -43,7 +43,7 @@ export function CartDrawer() {
         )}
       >
         <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-4">
-          <Heading as="h2" size="sm" className="flex items-center gap-2">
+          <Heading as="h2" level={3} className="flex items-center gap-2">
             <ShoppingBag className="size-5" aria-hidden="true" />
             Tu carrito ({count})
           </Heading>
