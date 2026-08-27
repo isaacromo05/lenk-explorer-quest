@@ -419,6 +419,7 @@ function ShopPage() {
         title={modelGuardian?.name ?? ""}
         description={modelGuardian?.sector}
         url={modelGuardian?.model3d ?? ""}
+        fallbackImage={modelGuardian?.image ?? ""}
       />
     </MobileLayout>
   );
