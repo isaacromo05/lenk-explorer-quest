@@ -27,7 +27,7 @@ function HomePage() {
   const recent = [...entries].sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt)).slice(0, 3);
   return (
     <MobileLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 bg-slate-100 p-4">
         <section className="rounded-2xl bg-primary p-6 text-primary-foreground shadow-sm">
           <Badge
             variant="outline"
