@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpenText, Home, ScanLine, ShoppingBag, type LucideIcon } from "lucide-react";
+import { BookOpenText, Home, ScanLine, ShoppingBag, ShoppingCart, type LucideIcon } from "lucide-react";
 
 import { Badge } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
+import { useCart } from "@/lib/cart";
 import { usePassport } from "@/lib/passport";
+
+import { CartDrawer, CartToast } from "./cart-drawer";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -11,6 +14,7 @@ interface MobileLayoutProps {
 
 export function MobileLayout({ children }: MobileLayoutProps) {
   const { scanned, total, hydrated } = usePassport();
+  const { count, openCart } = useCart();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center justify-between bg-primary px-4 text-primary-foreground shadow-sm">
@@ -22,12 +26,27 @@ export function MobileLayout({ children }: MobileLayoutProps) {
             🟢 Modo Offline Activo
           </span>
         </div>
-        <Badge
-          variant="outline"
-          className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground"
-        >
-          {hydrated ? scanned : 0}/{total} QR Escaneados
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="outline"
+            className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground"
+          >
+            {hydrated ? scanned : 0}/{total} QR Escaneados
+          </Badge>
+          <button
+            type="button"
+            onClick={openCart}
+            aria-label={`Abrir carrito (${count} artículos)`}
+            className="relative rounded-xl p-2 text-primary-foreground transition-colors hover:bg-primary-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
+          >
+            <ShoppingCart className="size-5" aria-hidden="true" />
+            {count > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-primary">
+                {count}
+              </span>
+            ) : null}
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 px-4 py-6 pb-28">{children}</main>
@@ -54,6 +73,9 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           <NavItem to="/shop" icon={ShoppingBag} label="Tienda" />
         </ul>
       </nav>
+
+      <CartDrawer />
+      <CartToast />
     </div>
   );
 }
