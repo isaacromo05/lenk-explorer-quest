@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 import { Button, Heading, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
-import { chf, useCart } from "@/lib/cart";
+import { chf, removeFromCart as removeItem, setQuantity as setQty, useCart } from "@/lib/cart";
 
 /** Slide-out cart with the added items, total and checkout CTA. */
 export function CartDrawer() {
@@ -182,6 +182,3 @@ export function CartToast() {
     </div>
   );
 }
-
-// Imported lazily to keep the drawer body readable.
-import { removeFromCart as removeItem, setQuantity as setQty } from "@/lib/cart";
