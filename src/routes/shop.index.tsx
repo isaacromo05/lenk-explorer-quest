@@ -229,6 +229,16 @@ function ShopPage() {
                   <Box className="size-4" aria-hidden="true" />
                   Ver en 3D
                 </Button>
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link
+                    to="/shop/configure"
+                    search={{ product: "figure" as const }}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Wand2 className="size-4" aria-hidden="true" />
+                    Personalizar grabado
+                  </Link>
+                </Button>
               </ProductCard>
             );
           })}
