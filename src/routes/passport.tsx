@@ -275,7 +275,7 @@ function PassportPage() {
                         id: "pin-exclusivo-lenk",
                         name: "Pin Exclusivo Lenk",
                         price: 8.5,
-                        image: "/assets/pin-lenk-gold.png",
+                        image: "/assets/pin-gold-front.png",
                         note: `Edición Gold · Serial ${GOLD_PIN.serial}`,
                       })
                     }
