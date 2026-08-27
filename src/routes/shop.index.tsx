@@ -176,7 +176,11 @@ function ShopPage() {
               Añadir al carrito · {chf(activeFrame.price)}
             </Button>
             <Button variant="outline" size="sm" className="w-full" asChild>
-              <Link to="/shop/configure" className="inline-flex items-center gap-2">
+              <Link
+                to="/shop/configure"
+                search={{ product: "frame" as const }}
+                className="inline-flex items-center gap-2"
+              >
                 <Wand2 className="size-4" aria-hidden="true" />
                 Personalizar mis fotos
               </Link>
