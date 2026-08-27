@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Input, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
+import { addToCart } from "@/lib/cart";
 import { LOCATIONS, SECTORS, type Location } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
 import { GUARDIANS } from "@/lib/guardians";
@@ -268,13 +269,21 @@ function PassportPage() {
                   </Text>
                   <Button
                     size="lg"
-                    className="w-full bg-bronze text-bronze-foreground shadow-md hover:bg-bronze-hover"
-                    asChild
+                    className="w-full gap-2 bg-bronze text-bronze-foreground shadow-md hover:bg-bronze-hover"
+                    onClick={() =>
+                      addToCart({
+                        id: "pin-exclusivo-lenk",
+                        name: "Pin Exclusivo Lenk",
+                        price: 8.5,
+                        image: "/assets/pin-gold-front.png",
+                        note: `Edición Gold · Serial ${GOLD_PIN.serial}`,
+                      },
+                      1,
+                      "Pin añadido al carrito")
+                    }
                   >
-                    <Link to="/shop/configure" className="inline-flex items-center gap-2">
-                      <Award className="size-5" aria-hidden="true" />
-                      Reclamar Pin Exclusivo — 8,50 CHF
-                    </Link>
+                    <Award className="size-5" aria-hidden="true" />
+                    Reclamar Pin Exclusivo — 8,50 CHF
                   </Button>
                 </>
               ) : (
