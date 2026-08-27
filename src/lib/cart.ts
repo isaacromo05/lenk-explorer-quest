@@ -46,7 +46,11 @@ function emit(next: CartStore) {
   listeners.forEach((fn) => fn(store));
 }
 
-export function addToCart(item: Omit<CartItem, "quantity">, quantity = 1) {
+export function addToCart(
+  item: Omit<CartItem, "quantity">,
+  quantity = 1,
+  toastMessage?: string,
+) {
   const existing = store.items[item.id];
   emit({
     ...store,
@@ -55,7 +59,7 @@ export function addToCart(item: Omit<CartItem, "quantity">, quantity = 1) {
       [item.id]: { ...item, quantity: (existing?.quantity ?? 0) + quantity },
     },
     open: true,
-    toast: { id: Date.now(), message: `${item.name} añadido al carrito` },
+    toast: { id: Date.now(), message: toastMessage ?? `${item.name} añadido al carrito` },
   });
 }
 

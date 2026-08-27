@@ -277,7 +277,9 @@ function PassportPage() {
                         price: 8.5,
                         image: "/assets/pin-gold-front.png",
                         note: `Edición Gold · Serial ${GOLD_PIN.serial}`,
-                      })
+                      },
+                      1,
+                      "Pin añadido al carrito")
                     }
                   >
                     <Award className="size-5" aria-hidden="true" />
