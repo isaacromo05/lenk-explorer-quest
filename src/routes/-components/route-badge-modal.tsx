@@ -64,11 +64,21 @@ export function RouteBadgeModal({ sector, state, onClose }: RouteBadgeModalProps
             complete ? "border-gold/50 bg-gold/10" : "border-border bg-background",
           )}
         >
-          <Medal label={`Insignia de la ${info.name}`} locked={!complete}>
-            <span className={cn(!complete && "grayscale")} aria-hidden="true">
-              {info.mascotEmoji}
-            </span>
-          </Medal>
+          {complete ? (
+            <img
+              src={BADGE_IMAGES[sector]}
+              alt={`Insignia de la ${info.name}`}
+              width={512}
+              height={512}
+              className="h-32 w-32 object-contain drop-shadow-lg sm:h-40 sm:w-40"
+            />
+          ) : (
+            <Medal label={`Insignia de la ${info.name}`} locked={!complete}>
+              <span className={cn(!complete && "grayscale")} aria-hidden="true">
+                {info.mascotEmoji}
+              </span>
+            </Medal>
+          )}
           <Badge variant={complete ? "gold" : "outline"}>
             {unlocked.length}/{locations.length} hitos
           </Badge>
