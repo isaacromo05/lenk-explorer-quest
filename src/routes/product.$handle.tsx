@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 
@@ -144,5 +144,3 @@ function ProductPage() {
     </MobileLayout>
   );
 }
-
-export { notFound };
