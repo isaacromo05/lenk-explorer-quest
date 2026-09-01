@@ -7,10 +7,11 @@
       "dependencies": {
         "class-variance-authority": "0.7.1",
         "clsx": "2.1.1",
-        "react": "^19.2.0",
-        "react-dom": "^19.2.0",
+        "react": "19.2.7",
+        "react-dom": "19.2.7",
         "tailwind-merge": "3.6.0",
         "tailwindcss": "4.3.3",
+        "zustand": "^5.0.15",
       },
       "devDependencies": {
         "@cloudflare/vite-plugin": "^1.25.5",
