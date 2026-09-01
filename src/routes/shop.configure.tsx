@@ -4,8 +4,11 @@ import { useMemo, useRef, useState } from "react";
 
 import { Badge, Button, Card, CardContent, Heading, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
+import { lookupSku, toCartItem, useCatalog } from "@/lib/catalog";
 import { SECTORS, locationsBySector, type SectorId } from "@/lib/locations";
 import { usePassport } from "@/lib/passport";
+import { SKU, formatMoney } from "@/lib/shopify";
+import { useCartStore } from "@/stores/cartStore";
 
 import { DebugProgressPanel } from "./-components/debug-progress-panel";
 import { MobileLayout } from "./-components/mobile-layout";
@@ -96,7 +99,7 @@ const ENGRAVINGS: Engraving[] = [
   },
 ];
 
-const chf = (value: number) => `CHF ${value.toFixed(2)}`;
+const chf = (value: number) => formatMoney({ amount: value, currencyCode: "CHF" });
 
 const MAX_PHOTOS = 8;
 
@@ -153,10 +156,47 @@ function ConfigurePage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const { data: products } = useCatalog();
+  const addItem = useCartStore((s) => s.addItem);
+  const isBusy = useCartStore((s) => s.isLoading);
+
   const base = BASE_PRODUCTS[product];
+  const baseEntry = lookupSku(products, product === "frame" ? SKU.frame.m : SKU.figure.water);
+  const basePrice = baseEntry ? Number.parseFloat(baseEntry.variant.price.amount) : base.price;
+
+  /** Shopify variant behind each engraving option, gated by the route badge. */
+  const engravingEntry = (option: Engraving) =>
+    option.sector ? lookupSku(products, SKU.engraving[option.sector]) : null;
+  const engravingPrice = (option: Engraving) => {
+    const entry = engravingEntry(option);
+    return entry ? Number.parseFloat(entry.variant.price.amount) : option.price;
+  };
+
   const selectedEngravings = ENGRAVINGS.filter((e) => engravingIds.includes(e.id));
-  const engravingTotal = selectedEngravings.reduce((sum, e) => sum + e.price, 0);
-  const total = base.price + engravingTotal;
+  const engravingTotal = selectedEngravings.reduce((sum, e) => sum + engravingPrice(e), 0);
+  const total = basePrice + engravingTotal;
+
+  const addConfiguredToCart = async () => {
+    if (!baseEntry) return;
+    const lines = [
+      toCartItem(baseEntry.product, baseEntry.variant, {
+        attributes: base.needsPhotos
+          ? [{ key: "Fotos del collage", value: String(photos.length) }]
+          : undefined,
+      }),
+      ...selectedEngravings
+        .map((option) => {
+          const entry = engravingEntry(option);
+          return entry ? toCartItem(entry.product, entry.variant) : null;
+        })
+        .filter((line): line is NonNullable<typeof line> => line !== null),
+    ];
+    await addItem(lines[0]!, `${base.name} añadido al carrito`);
+    for (const line of lines.slice(1)) {
+      await addItem(line, `${line.title} añadido al carrito`);
+    }
+    setAdded(true);
+  };
 
   const steps: StepId[] = base.needsPhotos
     ? ["photos", "engraving", "summary"]
@@ -383,7 +423,9 @@ function ConfigurePage() {
                           : option.note}
                       </span>
                     </span>
-                    <span className="text-sm font-semibold text-wood">+{option.price} CHF</span>
+                    <span className="text-sm font-semibold text-wood">
+                      +{chf(engravingPrice(option))}
+                    </span>
                   </button>
                 </Card>
               );
@@ -428,7 +470,7 @@ function ConfigurePage() {
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-text-muted">{base.name}</dt>
-                    <dd className="font-semibold text-text">{chf(base.price)}</dd>
+                    <dd className="font-semibold text-text">{chf(basePrice)}</dd>
                   </div>
                   {selectedEngravings.length === 0 && (
                     <div className="flex justify-between">
@@ -439,7 +481,7 @@ function ConfigurePage() {
                   {selectedEngravings.map((option) => (
                     <div key={option.id} className="flex justify-between">
                       <dt className="text-text-muted">{option.name}</dt>
-                      <dd className="font-semibold text-text">{chf(option.price)}</dd>
+                      <dd className="font-semibold text-text">{chf(engravingPrice(option))}</dd>
                     </div>
                   ))}
                   <div className="flex justify-between border-t border-border pt-2 text-base">
@@ -450,7 +492,8 @@ function ConfigurePage() {
                 <Button
                   className="w-full bg-bronze text-bronze-foreground hover:bg-bronze-hover"
                   size="lg"
-                  onClick={() => setAdded(true)}
+                  disabled={isBusy || !baseEntry}
+                  onClick={() => void addConfiguredToCart()}
                 >
                   <ShoppingCart className="size-5" aria-hidden="true" />
                   Añadir al carrito
