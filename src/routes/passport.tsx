@@ -37,7 +37,11 @@ const dateFormatter = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: 
 
 function PassportPage() {
   const { state, scanned, total, hydrated, sectorProgress, setPhoto } = usePassport();
+  const { data: products } = useCatalog();
+  const addItem = useCartStore((s) => s.addItem);
+  const pinEntry = lookupSku(products, SKU.pin);
   const allDone = hydrated && scanned === total;
+
   const [managing, setManaging] = useState<Location | null>(null);
   const [retaking, setRetaking] = useState<Location | null>(null);
   const [backupEmail, setBackupEmail] = useState("");
