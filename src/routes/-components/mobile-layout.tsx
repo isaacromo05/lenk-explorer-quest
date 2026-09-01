@@ -3,8 +3,9 @@ import { BookOpenText, Home, ScanLine, ShoppingBag, ShoppingCart, type LucideIco
 
 import { Badge } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
-import { useCart } from "@/lib/cart";
+import { useCartSync } from "@/hooks/useCartSync";
 import { usePassport } from "@/lib/passport";
+import { useCartStore, useCartTotals } from "@/stores/cartStore";
 
 import { CartDrawer, CartToast } from "./cart-drawer";
 
@@ -14,8 +15,11 @@ interface MobileLayoutProps {
 
 export function MobileLayout({ children }: MobileLayoutProps) {
   const { scanned, total, hydrated } = usePassport();
-  const { count, openCart } = useCart();
+  const { count } = useCartTotals();
+  const openCart = useCartStore((s) => s.openCart);
+  useCartSync();
   return (
+
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 shrink-0 items-center justify-between bg-primary px-4 text-primary-foreground shadow-sm">
         <div className="flex flex-col">
