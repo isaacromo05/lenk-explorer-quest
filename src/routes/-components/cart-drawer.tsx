@@ -1,13 +1,31 @@
-import { CheckCircle2, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useEffect } from "react";
 
 import { Button, Heading, Text } from "@/design-system";
 import { cn } from "@/design-system/lib/utils";
-import { chf, removeFromCart as removeItem, setQuantity as setQty, useCart } from "@/lib/cart";
+import { usePassport } from "@/lib/passport";
+import { formatMoney, QUEST_COMPLETE_DISCOUNT_CODE } from "@/lib/shopify";
+import { useCartStore, useCartTotals } from "@/stores/cartStore";
 
-/** Slide-out cart with the added items, total and checkout CTA. */
+/** Slide-out cart backed by the Shopify Storefront API. */
 export function CartDrawer() {
-  const { items, total, count, open, closeCart } = useCart();
+  const items = useCartStore((s) => s.items);
+  const open = useCartStore((s) => s.open);
+  const isLoading = useCartStore((s) => s.isLoading);
+  const isSyncing = useCartStore((s) => s.isSyncing);
+  const closeCart = useCartStore((s) => s.closeCart);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const removeItem = useCartStore((s) => s.removeItem);
+  const getCheckoutUrl = useCartStore((s) => s.getCheckoutUrl);
+  const applyDiscountCodes = useCartStore((s) => s.applyDiscountCodes);
+  const syncCart = useCartStore((s) => s.syncCart);
+  const { count, formattedTotal } = useCartTotals();
+  const { scanned, total: milestones } = usePassport();
+  const questComplete = scanned >= milestones;
+
+  useEffect(() => {
+    if (open) void syncCart();
+  }, [open, syncCart]);
 
   useEffect(() => {
     if (!open) return;
@@ -17,6 +35,15 @@ export function CartDrawer() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, closeCart]);
+
+  const handleCheckout = async () => {
+    if (questComplete) await applyDiscountCodes([QUEST_COMPLETE_DISCOUNT_CODE]);
+    const checkoutUrl = getCheckoutUrl();
+    if (checkoutUrl) {
+      window.open(checkoutUrl, "_blank");
+      closeCart();
+    }
+  };
 
   return (
     <div
@@ -66,13 +93,13 @@ export function CartDrawer() {
             <ul className="space-y-3">
               {items.map((item) => (
                 <li
-                  key={item.id}
+                  key={item.variantId}
                   className="flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
                 >
                   {item.image ? (
                     <img
                       src={item.image}
-                      alt={item.name}
+                      alt={item.title}
                       width={64}
                       height={64}
                       loading="lazy"
@@ -80,16 +107,21 @@ export function CartDrawer() {
                     />
                   ) : null}
                   <div className="min-w-0 flex-1">
-                    <Text className="font-semibold leading-tight">{item.name}</Text>
-                    {item.note ? (
+                    <Text className="font-semibold leading-tight">{item.title}</Text>
+                    {item.variantTitle ? (
                       <Text tone="muted" size="sm">
-                        {item.note}
+                        {item.variantTitle}
                       </Text>
                     ) : null}
+                    {item.attributes?.map((attr) => (
+                      <Text key={attr.key} tone="muted" size="sm">
+                        {attr.key}: {attr.value}
+                      </Text>
+                    ))}
                     <div className="mt-2 flex items-center gap-2">
                       <QtyButton
                         label="Quitar una unidad"
-                        onClick={() => setQty(item.id, item.quantity - 1)}
+                        onClick={() => void updateQuantity(item.variantId, item.quantity - 1)}
                       >
                         <Minus className="size-4" aria-hidden="true" />
                       </QtyButton>
@@ -98,19 +130,22 @@ export function CartDrawer() {
                       </span>
                       <QtyButton
                         label="Añadir una unidad"
-                        onClick={() => setQty(item.id, item.quantity + 1)}
+                        onClick={() => void updateQuantity(item.variantId, item.quantity + 1)}
                       >
                         <Plus className="size-4" aria-hidden="true" />
                       </QtyButton>
                       <span className="ml-auto text-sm font-bold text-text">
-                        {chf(item.price * item.quantity)}
+                        {formatMoney({
+                          amount: Number.parseFloat(item.price.amount) * item.quantity,
+                          currencyCode: item.price.currencyCode,
+                        })}
                       </span>
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => removeItem(item.id)}
-                    aria-label={`Eliminar ${item.name}`}
+                    onClick={() => void removeItem(item.variantId)}
+                    aria-label={`Eliminar ${item.title}`}
                     className="self-start rounded-xl p-2 text-text-muted transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <Trash2 className="size-4" aria-hidden="true" />
@@ -124,13 +159,31 @@ export function CartDrawer() {
         <footer className="shrink-0 space-y-3 border-t border-border px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center justify-between">
             <Text className="font-semibold">Total</Text>
-            <Text className="text-lg font-bold">{chf(total)}</Text>
+            <Text className="text-lg font-bold">{formattedTotal}</Text>
           </div>
-          <Button size="lg" className="w-full" disabled={items.length === 0}>
-            Proceder al Pago
+          {questComplete ? (
+            <Text tone="muted" size="sm">
+              🏅 Aventura completada: aplicaremos tu descuento {QUEST_COMPLETE_DISCOUNT_CODE} en el
+              pago.
+            </Text>
+          ) : null}
+          <Button
+            size="lg"
+            className="w-full"
+            disabled={items.length === 0 || isLoading || isSyncing}
+            onClick={() => void handleCheckout()}
+          >
+            {isLoading || isSyncing ? (
+              <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+            ) : (
+              <>
+                <ExternalLink className="size-5" aria-hidden="true" />
+                Pagar con Shopify
+              </>
+            )}
           </Button>
           <Text tone="muted" size="sm" className="text-center">
-            Envío a domicilio en toda Suiza. Pago seguro online.
+            Envío a domicilio en toda Suiza. Pago seguro con Shopify.
           </Text>
         </footer>
       </aside>
@@ -161,7 +214,8 @@ function QtyButton({
 
 /** Toast shown when an item lands in the cart. */
 export function CartToast() {
-  const { toast, clearToast } = useCart();
+  const toast = useCartStore((s) => s.toast);
+  const clearToast = useCartStore((s) => s.clearToast);
 
   useEffect(() => {
     if (!toast) return;
