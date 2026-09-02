@@ -1,0 +1,3 @@
+# Mantener estables los archivos TypeScript entre Windows, macOS y Linux
+*.ts text eol=lf
+*.tsx text eol=lf
